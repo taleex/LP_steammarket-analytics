@@ -1,11 +1,19 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { TransactionTable } from "@/components/TransactionTable";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
+            Steam Market Analytics
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Análise de histórico de transações da Steam Market
+          </p>
+        </header>
+        
+        <TransactionTable />
       </div>
     </div>
   );
