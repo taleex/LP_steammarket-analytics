@@ -5,66 +5,73 @@ import { Badge } from "@/components/ui/badge";
 
 interface Transaction {
   id: number;
-  "Item Name": string;
-  "Game Name": string;
-  "Acted On": string;
-  " Price in Cents": number;
-  " Type": "purchase" | "sale";
+  item: string;
+  game: string;
+  date: string;
+  price_cents: number;
+  type: "purchase" | "sale";
+}
+
+interface TransactionTableProps {
+  transactions: Transaction[];
 }
 
 const mockData: Transaction[] = [
   {
     id: 1,
-    "Item Name": "AK-47 | Redline (Field-Tested)",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-01-15T10:30:00Z",
-    " Price in Cents": 2850,
-    " Type": "purchase"
+    item: "AK-47 | Redline (Field-Tested)",
+    game: "Counter-Strike 2",
+    date: "2024-01-15T10:30:00Z",
+    price_cents: 2850,
+    type: "purchase"
   },
   {
     id: 2,
-    "Item Name": "AWP | Dragon Lore (Factory New)",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-01-20T14:45:00Z",
-    " Price in Cents": 125000,
-    " Type": "sale"
+    item: "AWP | Dragon Lore (Factory New)",
+    game: "Counter-Strike 2", 
+    date: "2024-01-20T14:45:00Z",
+    price_cents: 125000,
+    type: "sale"
   },
   {
     id: 3,
-    "Item Name": "Glock-18 | Fade (Factory New)",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-01-25T09:15:00Z",
-    " Price in Cents": 1200,
-    " Type": "purchase"
+    item: "Glock-18 | Fade (Factory New)",
+    game: "Counter-Strike 2",
+    date: "2024-01-25T09:15:00Z",
+    price_cents: 1200,
+    type: "purchase"
   },
   {
     id: 4,
-    "Item Name": "M4A4 | Howl (Minimal Wear)",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-02-01T16:20:00Z",
-    " Price in Cents": 85000,
-    " Type": "sale"
+    item: "M4A4 | Howl (Minimal Wear)",
+    game: "Counter-Strike 2",
+    date: "2024-02-01T16:20:00Z",
+    price_cents: 85000,
+    type: "sale"
   },
   {
     id: 5,
-    "Item Name": "Karambit | Doppler Phase 2",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-02-05T11:30:00Z",
-    " Price in Cents": 95000,
-    " Type": "purchase"
+    item: "Karambit | Doppler Phase 2",
+    game: "Counter-Strike 2",
+    date: "2024-02-05T11:30:00Z",
+    price_cents: 95000,
+    type: "purchase"
   },
   {
     id: 6,
-    "Item Name": "StatTrak™ AK-47 | Fire Serpent",
-    "Game Name": "Counter-Strike 2",
-    "Acted On": "2024-02-10T13:45:00Z",
-    " Price in Cents": 180000,
-    " Type": "sale"
+    item: "StatTrak™ AK-47 | Fire Serpent",
+    game: "Counter-Strike 2",
+    date: "2024-02-10T13:45:00Z",
+    price_cents: 180000,
+    type: "sale"
   }
 ];
 
-export const TransactionTable = () => {
+export const TransactionTable = ({ transactions }: TransactionTableProps) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+
+  // Use os dados passados como prop ou dados mock se vazio
+  const data = transactions.length > 0 ? transactions : mockData;
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -85,12 +92,12 @@ export const TransactionTable = () => {
     let totalSpent = 0;
 
     selectedItems.forEach(id => {
-      const transaction = mockData.find(t => t.id === id);
+      const transaction = data.find(t => t.id === id);
       if (transaction) {
-        if (transaction[" Type"] === "sale") {
-          totalGains += transaction[" Price in Cents"];
+        if (transaction.type === "sale") {
+          totalGains += transaction.price_cents;
         } else {
-          totalSpent += transaction[" Price in Cents"];
+          totalSpent += transaction.price_cents;
         }
       }
     });
@@ -100,7 +107,7 @@ export const TransactionTable = () => {
       spent: totalSpent,
       net: totalGains - totalSpent
     };
-  }, [selectedItems]);
+  }, [selectedItems, data]);
 
   const handleSelectItem = (id: number, checked: boolean) => {
     const newSelected = new Set(selectedItems);
@@ -114,7 +121,7 @@ export const TransactionTable = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItems(new Set(mockData.map(t => t.id)));
+      setSelectedItems(new Set(data.map(t => t.id)));
     } else {
       setSelectedItems(new Set());
     }
@@ -158,7 +165,7 @@ export const TransactionTable = () => {
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left p-4 font-semibold text-foreground">
                   <Checkbox
-                    checked={selectedItems.size === mockData.length}
+                    checked={selectedItems.size === data.length}
                     onCheckedChange={handleSelectAll}
                   />
                 </th>
@@ -170,7 +177,7 @@ export const TransactionTable = () => {
               </tr>
             </thead>
             <tbody>
-              {mockData.map((transaction) => (
+              {data.map((transaction) => (
                 <tr 
                   key={transaction.id} 
                   className={`border-b border-border hover:bg-muted/20 transition-colors ${
@@ -186,31 +193,31 @@ export const TransactionTable = () => {
                     />
                   </td>
                   <td className="p-4 text-foreground font-medium max-w-xs">
-                    <div className="truncate" title={transaction["Item Name"]}>
-                      {transaction["Item Name"]}
+                    <div className="truncate" title={transaction.item}>
+                      {transaction.item}
                     </div>
                   </td>
                   <td className="p-4 text-muted-foreground">
-                    {transaction["Game Name"]}
+                    {transaction.game}
                   </td>
                   <td className="p-4 text-muted-foreground">
-                    {formatDate(transaction["Acted On"])}
+                    {formatDate(transaction.date)}
                   </td>
                   <td className="p-4">
                     <Badge 
-                      variant={transaction[" Type"] === "sale" ? "default" : "secondary"}
-                      className={transaction[" Type"] === "sale" ? 
+                      variant={transaction.type === "sale" ? "default" : "secondary"}
+                      className={transaction.type === "sale" ? 
                         "bg-profit text-profit-foreground" : 
                         "bg-loss text-loss-foreground"
                       }
                     >
-                      {transaction[" Type"] === "sale" ? "Venda" : "Compra"}
+                      {transaction.type === "sale" ? "Venda" : "Compra"}
                     </Badge>
                   </td>
                   <td className={`p-4 font-semibold ${
-                    transaction[" Type"] === "sale" ? "text-profit" : "text-loss"
+                    transaction.type === "sale" ? "text-profit" : "text-loss"
                   }`}>
-                    {formatPrice(transaction[" Price in Cents"])}
+                    {formatPrice(transaction.price_cents)}
                   </td>
                 </tr>
               ))}
