@@ -67,11 +67,11 @@ const mockData: Transaction[] = [
   }
 ];
 
-export const TransactionTable = ({ transactions }: TransactionTableProps) => {
+export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
   // Use os dados passados como prop ou dados mock se vazio
-  const data = transactions.length > 0 ? transactions : mockData;
+  const data = (transactions && transactions.length > 0) ? transactions : mockData;
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
