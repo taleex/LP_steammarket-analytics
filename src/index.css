@@ -11,13 +11,13 @@ All colors MUST be HSL.
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 240 8% 6%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 240 8% 6%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142 76% 36%;
+    --primary: 142 86% 28%;
     --primary-foreground: 355 7% 97%;
 
     --secondary: 240 3.7% 15.9%;
@@ -37,15 +37,19 @@ All colors MUST be HSL.
     --ring: 142 72% 29%;
 
     /* Steam Market themed colors */
-    --profit: 142 76% 36%;
+    --profit: 142 86% 28%;
     --profit-foreground: 355 7% 97%;
     --loss: 0 84% 60%;
     --loss-foreground: 0 0% 98%;
     --neutral: 240 5% 64.9%;
+    --steam-blue: 203 89% 53%;
+    --steam-dark: 211 39% 23%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 46%));
-    --gradient-card: linear-gradient(145deg, hsl(240 10% 3.9%), hsl(240 8% 6%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 86% 28%), hsl(142 76% 46%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 6%), hsl(240 6% 8%));
+    --gradient-steam: linear-gradient(135deg, hsl(203 89% 53%), hsl(211 39% 23%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 10% 3.9%) 0%, hsl(240 8% 6%) 50%, hsl(240 6% 8%) 100%);
 
     --radius: 0.75rem;
 
