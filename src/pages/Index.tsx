@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TransactionTable } from "@/components/TransactionTable";
 import { CSVUpload } from "@/components/CSVUpload";
+import { TransactionFilters } from "@/components/TransactionFilters";
 import { BarChart3, TrendingUp } from "lucide-react";
 
 interface Transaction {
@@ -14,9 +15,15 @@ interface Transaction {
 
 const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
 
   const handleDataLoaded = (data: Transaction[]) => {
     setTransactions(data);
+    setFilteredTransactions(data);
+  };
+
+  const handleFilteredTransactions = (filtered: Transaction[]) => {
+    setFilteredTransactions(filtered);
   };
 
   return (
@@ -68,7 +75,14 @@ const Index = () => {
             hasData={transactions.length > 0}
           />
           
-          <TransactionTable transactions={transactions} />
+          {transactions.length > 0 && (
+            <TransactionFilters 
+              transactions={transactions}
+              onFilteredTransactions={handleFilteredTransactions}
+            />
+          )}
+          
+          <TransactionTable transactions={filteredTransactions} />
         </div>
       </div>
     </div>
