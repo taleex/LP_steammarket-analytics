@@ -94,10 +94,10 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-foreground">
-                Nenhum dado carregado
+                No data loaded
               </h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Importe um ficheiro CSV para começar a analisar as suas transações da Steam Market
+                Import a CSV file to start analyzing your Steam Market transactions
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               <TrendingUp className="h-6 w-6 text-profit" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Total Ganho</div>
+              <div className="text-sm text-muted-foreground font-medium">Total Profit</div>
               <div className="text-2xl font-bold text-profit">
                 {formatPrice(totals.gains)}
               </div>
@@ -132,7 +132,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               <TrendingDown className="h-6 w-6 text-loss" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Total Gasto</div>
+              <div className="text-sm text-muted-foreground font-medium">Total Spent</div>
               <div className="text-2xl font-bold text-loss">
                 {formatPrice(totals.spent)}
               </div>
@@ -147,7 +147,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               <Calculator className={`h-6 w-6 ${totals.net >= 0 ? 'text-profit' : 'text-loss'}`} />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Saldo Líquido</div>
+              <div className="text-sm text-muted-foreground font-medium">Net Balance</div>
               <div className={`text-2xl font-bold ${totals.net >= 0 ? 'text-profit' : 'text-loss'}`}>
                 {formatPrice(totals.net)}
               </div>
@@ -162,7 +162,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               <Database className="h-6 w-6 text-steam-blue" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground font-medium">Items Selecionados</div>
+              <div className="text-sm text-muted-foreground font-medium">Selected Items</div>
               <div className="text-2xl font-bold text-foreground">
                 {selectedItems.size} / {transactions.length}
               </div>
@@ -175,10 +175,10 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
       <Card className="bg-gradient-card border border-border/50 overflow-hidden backdrop-blur-sm">
         <div className="p-6 border-b border-border/50 bg-muted/5">
           <h3 className="text-lg font-semibold text-foreground">
-            Histórico de Transações
+            Transaction History
           </h3>
           <p className="text-sm text-muted-foreground">
-            Selecione as transações para análise detalhada
+            Select transactions for detailed analysis
           </p>
         </div>
         
@@ -193,10 +193,10 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
                   />
                 </th>
                 <th className="text-left p-4 font-semibold text-foreground">Item</th>
-                <th className="text-left p-4 font-semibold text-foreground">Jogo</th>
-                <th className="text-left p-4 font-semibold text-foreground">Data</th>
-                <th className="text-left p-4 font-semibold text-foreground">Tipo</th>
-                <th className="text-left p-4 font-semibold text-foreground">Preço</th>
+                <th className="text-left p-4 font-semibold text-foreground">Game</th>
+                <th className="text-left p-4 font-semibold text-foreground">Date</th>
+                <th className="text-left p-4 font-semibold text-foreground">Type</th>
+                <th className="text-left p-4 font-semibold text-foreground">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -236,7 +236,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
                         "bg-loss/20 text-loss border-loss/30 hover:bg-loss/30"
                       }
                     >
-                      {transaction.type === "sale" ? "Venda" : "Compra"}
+                      {transaction.type === "sale" ? "Sale" : "Purchase"}
                     </Badge>
                   </td>
                   <td className={`p-4 font-bold font-mono ${

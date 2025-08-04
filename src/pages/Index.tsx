@@ -41,23 +41,23 @@ const Index = () => {
               </span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Análise avançada e intuitiva do seu histórico de transações da Steam Market. 
-              Descubra padrões, calcule lucros e otimize as suas estratégias de trading.
+              Advanced and intuitive analysis of your Steam Market transaction history. 
+              Discover patterns, calculate profits and optimize your trading strategies.
             </p>
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-profit rounded-full"></div>
-              Análise de Lucros
+              Profit Analysis
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-steam-blue rounded-full"></div>
-              Importação CSV
+              CSV Import
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-primary rounded-full"></div>
-              Relatórios Detalhados
+              Detailed Reports
             </div>
           </div>
         </header>

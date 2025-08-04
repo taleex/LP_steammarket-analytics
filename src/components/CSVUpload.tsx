@@ -41,7 +41,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
     const requiredFields = ["item", "game", "date", "price_cents", "type"];
     
     if (rawData.length === 0) {
-      throw new Error("O ficheiro CSV está vazio");
+      throw new Error("The CSV file is empty");
     }
 
     const firstRow = rawData[0];
@@ -49,7 +49,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
     
     const missingFields = requiredFields.filter(field => !headers.includes(field));
     if (missingFields.length > 0) {
-      throw new Error(`Campos obrigatórios em falta: ${missingFields.join(", ")}`);
+      throw new Error(`Required fields missing: ${missingFields.join(", ")}`);
     }
 
     return rawData.map((row, index) => {
@@ -67,16 +67,16 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
       const type = normalizedRow.type?.toLowerCase().trim();
 
       if (!item || !game || !date || !priceString || !type) {
-        throw new Error(`Linha ${index + 1}: Dados incompletos`);
+        throw new Error(`Row ${index + 1}: Incomplete data`);
       }
 
       const price_cents = parseInt(priceString);
       if (isNaN(price_cents) || price_cents < 0) {
-        throw new Error(`Linha ${index + 1}: Preço inválido (${priceString})`);
+        throw new Error(`Row ${index + 1}: Invalid price (${priceString})`);
       }
 
       if (type !== "purchase" && type !== "sale") {
-        throw new Error(`Linha ${index + 1}: Tipo deve ser 'purchase' ou 'sale' (recebido: ${type})`);
+        throw new Error(`Row ${index + 1}: Type must be 'purchase' or 'sale' (received: ${type})`);
       }
 
       return {
@@ -97,8 +97,8 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
 
     if (!file.name.toLowerCase().endsWith('.csv')) {
       toast({
-        title: "Formato inválido",
-        description: "Por favor, selecione um ficheiro CSV válido",
+        title: "Invalid format",
+        description: "Please select a valid CSV file",
         variant: "destructive"
       });
       return;
@@ -110,7 +110,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
       complete: (results) => {
         try {
           if (results.errors.length > 0) {
-            throw new Error(`Erro no CSV: ${results.errors[0].message}`);
+            throw new Error(`CSV Error: ${results.errors[0].message}`);
           }
 
           const validatedData = validateAndConvertData(results.data);
@@ -118,8 +118,8 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
           onDataLoaded(validatedData);
           
           toast({
-            title: "Upload concluído",
-            description: `${validatedData.length} transações carregadas com sucesso`,
+            title: "Upload completed",
+            description: `${validatedData.length} transactions loaded successfully`,
           });
 
           if (fileInputRef.current) {
@@ -127,16 +127,16 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
           }
         } catch (error) {
           toast({
-            title: "Erro ao processar CSV",
-            description: error instanceof Error ? error.message : "Erro desconhecido",
+            title: "Error processing CSV",
+            description: error instanceof Error ? error.message : "Unknown error",
             variant: "destructive"
           });
         }
       },
       error: (error) => {
         toast({
-          title: "Erro de leitura",
-          description: `Falha ao ler o ficheiro: ${error.message}`,
+          title: "Reading error",
+          description: `Failed to read file: ${error.message}`,
           variant: "destructive"
         });
       }
@@ -160,10 +160,10 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                Importar Dados CSV
+                Import CSV Data
               </h3>
               <p className="text-muted-foreground">
-                Carregue o ficheiro CSV exportado da Steam Market para análise detalhada das suas transações
+                Upload the CSV file exported from Steam Market for detailed analysis of your transactions
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
           <Alert className="border-steam-blue/20 bg-steam-blue/5">
             <Info className="h-4 w-4 text-steam-blue" />
             <AlertDescription className="text-sm text-foreground">
-              <strong>Formato esperado:</strong> O CSV deve conter as colunas: "Item Name", "Game Name", "Acted On", "Price in Cents", "Type" (purchase/sale)
+              <strong>Expected format:</strong> CSV must contain columns: "Item Name", "Game Name", "Acted On", "Price in Cents", "Type" (purchase/sale)
             </AlertDescription>
           </Alert>
 
@@ -181,7 +181,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
               className="bg-gradient-primary text-primary-foreground hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-primary/25"
             >
               <Upload className="h-4 w-4 mr-2" />
-              {hasData ? "Substituir Dados" : "Importar CSV"}
+              {hasData ? "Replace Data" : "Import CSV"}
             </Button>
             
             {hasData && (
@@ -190,7 +190,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
                 onClick={() => onDataLoaded([])}
                 className="border-border/50 text-foreground hover:bg-muted/50 transition-all duration-200"
               >
-                Limpar Dados
+                Clear Data
               </Button>
             )}
           </div>
