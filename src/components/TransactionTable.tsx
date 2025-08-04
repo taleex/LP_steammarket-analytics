@@ -25,13 +25,21 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-PT', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original string if invalid
+      }
+      return date.toLocaleDateString('pt-PT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString; // Return original string if error
+    }
   };
 
   const totals = useMemo(() => {
@@ -195,12 +203,13 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               {transactions.map((transaction, index) => (
                 <tr 
                   key={transaction.id} 
-                  className={`border-b border-border/30 hover:bg-muted/20 transition-colors duration-200 animate-fade-in ${
+                  className={`border-b border-border/30 hover:bg-muted/20 transition-colors duration-200 animate-fade-in cursor-pointer ${
                     selectedItems.has(transaction.id) ? 'bg-primary/5 border-primary/20' : ''
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => handleSelectItem(transaction.id, !selectedItems.has(transaction.id))}
                 >
-                  <td className="p-4">
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={selectedItems.has(transaction.id)}
                       onCheckedChange={(checked) => 
