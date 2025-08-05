@@ -142,7 +142,12 @@ export const CSVUpload = ({ onDataLoaded, hasData, user, onShowAuthModal }: CSVU
         .eq('user_id', user.id)
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        // Don't show error to user for initial load failures
+        // Just keep the app working with empty data
+        return;
+      }
 
       const formattedTransactions: Transaction[] = data.map(transaction => ({
         id: transaction.id,
@@ -156,11 +161,8 @@ export const CSVUpload = ({ onDataLoaded, hasData, user, onShowAuthModal }: CSVU
       onDataLoaded(formattedTransactions);
     } catch (error) {
       console.error('Error loading transactions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load transactions from database",
-        variant: "destructive",
-      });
+      // Keep the app working even if database is unavailable
+      // Don't show error toast for initial loads
     }
   };
 
