@@ -2,20 +2,16 @@ import { useState } from "react";
 import { TransactionTable } from "@/components/TransactionTable";
 import { CSVUpload } from "@/components/CSVUpload";
 import { TransactionFilters } from "@/components/TransactionFilters";
+import { Navbar } from "@/components/Navbar";
 import { BarChart3, TrendingUp } from "lucide-react";
-
-interface Transaction {
-  id: number;
-  item: string;
-  game: string;
-  date: string;
-  price_cents: number;
-  type: "purchase" | "sale";
-}
+import type { User } from "@supabase/supabase-js";
+import { Transaction } from "@/types/transaction";
 
 const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleDataLoaded = (data: Transaction[]) => {
     setTransactions(data);
@@ -26,8 +22,20 @@ const Index = () => {
     setFilteredTransactions(filtered);
   };
 
+  const handleAuthChange = (newUser: User | null) => {
+    setUser(newUser);
+  };
+
+  const handleShowAuthModal = () => {
+    // This will trigger the auth modal in the navbar
+    const loginButton = document.querySelector('[data-auth-trigger]') as HTMLButtonElement;
+    loginButton?.click();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <Navbar onAuthChange={handleAuthChange} />
+      
       <div className="container mx-auto px-4 py-12">
         {/* Hero Header */}
         <header className="mb-12 text-center space-y-6 animate-fade-in">
@@ -73,6 +81,8 @@ const Index = () => {
           <CSVUpload 
             onDataLoaded={handleDataLoaded} 
             hasData={transactions.length > 0}
+            user={user}
+            onShowAuthModal={handleShowAuthModal}
           />
           
           {transactions.length > 0 && (

@@ -1,26 +1,22 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileSpreadsheet, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Transaction {
-  id: number;
-  item: string;
-  game: string;
-  date: string;
-  price_cents: number;
-  type: "purchase" | "sale";
-}
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { Transaction } from "@/types/transaction";
 
 interface CSVUploadProps {
   onDataLoaded: (data: Transaction[]) => void;
   hasData: boolean;
+  user: User | null;
+  onShowAuthModal: () => void;
 }
 
-export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
+export const CSVUpload = ({ onDataLoaded, hasData, user, onShowAuthModal }: CSVUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -90,10 +86,95 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
     });
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const saveTransactionsToDatabase = async (transactions: Transaction[]): Promise<Transaction[]> => {
+    if (!user) throw new Error("User not authenticated");
+
+    const savedTransactions: Transaction[] = [];
+
+    for (const transaction of transactions) {
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: user.id,
+            item: transaction.item,
+            game: transaction.game,
+            date: transaction.date,
+            price_cents: transaction.price_cents,
+            type: transaction.type,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          // If it's a unique constraint violation, skip this transaction
+          if (error.code === '23505') {
+            continue;
+          }
+          throw error;
+        }
+
+        if (data) {
+          savedTransactions.push({
+            id: data.id,
+            item: data.item,
+            game: data.game,
+            date: data.date,
+            price_cents: data.price_cents,
+            type: data.type as "purchase" | "sale",
+          });
+        }
+      } catch (error) {
+        console.error('Error saving transaction:', error);
+      }
+    }
+
+    return savedTransactions;
+  };
+
+  const loadUserTransactions = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedTransactions: Transaction[] = data.map(transaction => ({
+        id: transaction.id,
+        item: transaction.item,
+        game: transaction.game,
+        date: transaction.date,
+        price_cents: transaction.price_cents,
+        type: transaction.type as "purchase" | "sale",
+      }));
+
+      onDataLoaded(formattedTransactions);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load transactions from database",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     
     if (!file) return;
+
+    // Check if user is authenticated
+    if (!user) {
+      onShowAuthModal();
+      event.target.value = '';
+      return;
+    }
 
     if (!file.name.toLowerCase().endsWith('.csv')) {
       toast({
@@ -107,7 +188,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: async (results) => {
         try {
           if (results.errors.length > 0) {
             throw new Error(`CSV Error: ${results.errors[0].message}`);
@@ -115,12 +196,23 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
 
           const validatedData = validateAndConvertData(results.data);
           
-          onDataLoaded(validatedData);
+          // Save to database and get unique transactions
+          const savedTransactions = await saveTransactionsToDatabase(validatedData);
           
-          toast({
-            title: "Upload completed",
-            description: `${validatedData.length} transactions loaded successfully`,
-          });
+          if (savedTransactions.length === 0) {
+            toast({
+              title: "No New Data",
+              description: "All transactions from this CSV were already imported.",
+            });
+          } else {
+            toast({
+              title: "Success",
+              description: `Successfully imported ${savedTransactions.length} new transactions.`,
+            });
+          }
+
+          // Load all user transactions from database
+          await loadUserTransactions();
 
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -144,8 +236,21 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
   };
 
   const triggerFileInput = () => {
+    if (!user) {
+      onShowAuthModal();
+      return;
+    }
     fileInputRef.current?.click();
   };
+
+  // Load user transactions when user changes
+  useEffect(() => {
+    if (user) {
+      loadUserTransactions();
+    } else {
+      onDataLoaded([]);
+    }
+  }, [user]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -163,7 +268,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
                 Import CSV Data
               </h3>
               <p className="text-muted-foreground">
-                Upload the CSV file exported from Steam Market for detailed analysis of your transactions
+                {!user ? "Sign in to upload and save your Steam Market transaction data" : "Upload the CSV file exported from Steam Market for detailed analysis of your transactions"}
               </p>
             </div>
           </div>
@@ -184,7 +289,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
               {hasData ? "Replace Data" : "Import CSV"}
             </Button>
             
-            {hasData && (
+            {hasData && user && (
               <Button 
                 variant="outline" 
                 onClick={() => onDataLoaded([])}
