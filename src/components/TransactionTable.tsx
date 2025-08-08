@@ -3,14 +3,22 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Calculator, Database } from "lucide-react";
-import { Transaction } from "@/types/transaction";
+
+interface Transaction {
+  id: number;
+  item: string;
+  game: string;
+  date: string;
+  price_cents: number;
+  type: "purchase" | "sale";
+}
 
 interface TransactionTableProps {
   transactions: Transaction[];
 }
 
 export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
-  const [selectedItems, setSelectedItems] = useState<Set<string | number>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -56,7 +64,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     };
   }, [selectedItems, transactions]);
 
-  const handleSelectItem = (id: string | number, checked: boolean) => {
+  const handleSelectItem = (id: number, checked: boolean) => {
     const newSelected = new Set(selectedItems);
     if (checked) {
       newSelected.add(id);

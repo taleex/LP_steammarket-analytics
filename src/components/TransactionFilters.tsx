@@ -5,7 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, X } from "lucide-react";
-import { Transaction } from "@/types/transaction";
+
+interface Transaction {
+  id: number;
+  item: string;
+  game: string;
+  date: string;
+  price_cents: number;
+  type: "purchase" | "sale";
+}
 
 interface TransactionFiltersProps {
   transactions: Transaction[];
