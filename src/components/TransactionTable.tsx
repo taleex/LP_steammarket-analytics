@@ -19,6 +19,7 @@ interface TransactionTableProps {
 
 export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -82,6 +83,30 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     }
   };
 
+  const handleRowClick = (index: number, id: number, e: any) => {
+    const isSelected = selectedItems.has(id);
+    const shouldSelect = !isSelected;
+
+    if (e.shiftKey && lastClickedIndex !== null) {
+      const start = Math.min(lastClickedIndex, index);
+      const end = Math.max(lastClickedIndex, index);
+      const newSelected = new Set(selectedItems);
+
+      for (let i = start; i <= end; i++) {
+        const rangeId = transactions[i]?.id;
+        if (rangeId !== undefined) {
+          if (shouldSelect) newSelected.add(rangeId);
+          else newSelected.delete(rangeId);
+        }
+      }
+
+      setSelectedItems(newSelected);
+    } else {
+      handleSelectItem(id, shouldSelect);
+    }
+
+    setLastClickedIndex(index);
+  };
   if (transactions.length === 0) {
     return (
       <div className="space-y-8 animate-slide-up">
@@ -207,7 +232,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
                     selectedItems.has(transaction.id) ? 'bg-primary/5 border-primary/20' : ''
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
-                  onClick={() => handleSelectItem(transaction.id, !selectedItems.has(transaction.id))}
+                  onClick={(e) => handleRowClick(index, transaction.id, e)}
                 >
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
