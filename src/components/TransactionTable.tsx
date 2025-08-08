@@ -106,6 +106,13 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     }
 
     setLastClickedIndex(index);
+
+    // Clear any text selection caused by shift-click
+    if (e.shiftKey) {
+      try {
+        window.getSelection()?.removeAllRanges();
+      } catch {}
+    }
   };
   if (transactions.length === 0) {
     return (
@@ -232,6 +239,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
                     selectedItems.has(transaction.id) ? 'bg-primary/5 border-primary/20' : ''
                   }`}
                   style={{ animationDelay: `${index * 50}ms` }}
+                  onMouseDown={(e) => { if (e.shiftKey && e.button === 0) e.preventDefault(); }}
                   onClick={(e) => handleRowClick(index, transaction.id, e)}
                 >
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
