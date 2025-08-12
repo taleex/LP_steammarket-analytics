@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, startOfDay, endOfDay } from "date-fns";
+import { Slider } from "@/components/ui/slider";
+
 
 interface Transaction {
   id: number;
@@ -37,6 +39,20 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
 
   // Get unique games from transactions
   const uniqueGames = Array.from(new Set(transactions.map(t => t.game))).sort();
+
+  // Price bounds derived from data (in €)
+  const pricesEuros = transactions.map((t) => t.price_cents / 100);
+  const minBound = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0;
+  const maxBound = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000;
+
+  // Slider state mirrors min/max price filters
+  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound]);
+  useEffect(() => {
+    const from = minPrice ? parseFloat(minPrice) : minBound;
+    const to = maxPrice ? parseFloat(maxPrice) : maxBound;
+    setPriceRange([from, to]);
+  }, [minPrice, maxPrice, minBound, maxBound]);
+
 
   const applyFilters = () => {
     let filtered = transactions;
@@ -98,6 +114,7 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
     setMaxPrice("");
     setStartDate(undefined);
     setEndDate(undefined);
+    setPriceRange([minBound, maxBound]);
     onFilteredTransactions(transactions);
   };
 
@@ -216,30 +233,27 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                     </Popover>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <Label htmlFor="minPrice">Preço mín. (€)</Label>
-                    <Input
-                      id="minPrice"
-                      type="number"
-                      placeholder="0.00"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <Label htmlFor="maxPrice">Preço máx. (€)</Label>
-                    <Input
-                      id="maxPrice"
-                      type="number"
-                      placeholder="0.00"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                      step="0.01"
-                      min="0"
-                    />
+                  <div className="flex flex-col gap-2">
+                    <Label>Faixa de preço (€)</Label>
+                    <div className="px-1">
+                      <Slider
+                        value={priceRange}
+                        min={minBound}
+                        max={maxBound}
+                        step={1}
+                        onValueChange={(v) => {
+                          const [from, to] = v as number[]
+                          setPriceRange([from, to])
+                          setMinPrice(String(from))
+                          setMaxPrice(String(to))
+                        }}
+                        aria-label="Faixa de preço"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>€{Number(priceRange?.[0] ?? minBound).toFixed(0)}</span>
+                      <span>€{Number(priceRange?.[1] ?? maxBound).toFixed(0)}</span>
+                    </div>
                   </div>
                 </div>
 
