@@ -10,7 +10,7 @@ import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon } from "lucide
 import { Calendar } from "@/components/ui/calendar";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { Slider } from "@/components/ui/slider";
-
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface Transaction {
   id: number;
@@ -37,21 +37,33 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
   const [filteredCount, setFilteredCount] = useState(0);
   const [open, setOpen] = useState(false);
 
+  // Debounced inputs to improve typing/click UX
+  const debouncedSearchTerm = useDebounce(searchTerm, 250);
+  const debouncedMinPrice = useDebounce(minPrice, 250);
+  const debouncedMaxPrice = useDebounce(maxPrice, 250);
+
+
   // Get unique games from transactions
   const uniqueGames = Array.from(new Set(transactions.map(t => t.game))).sort();
 
   // Price bounds derived from data (in €)
-  const pricesEuros = transactions.map((t) => t.price_cents / 100);
-  const minBound = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0;
-  const maxBound = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000;
+  const pricesEuros = transactions.map((t) => t.price_cents / 100)
+  let minBound = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0
+  let maxBound = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000
+  if (maxBound <= minBound) {
+    maxBound = minBound + 1
+  }
 
-  // Slider state mirrors min/max price filters
-  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound]);
+  // Slider display state mirrors min/max filters
+  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound])
   useEffect(() => {
-    const from = minPrice ? parseFloat(minPrice) : minBound;
-    const to = maxPrice ? parseFloat(maxPrice) : maxBound;
-    setPriceRange([from, to]);
-  }, [minPrice, maxPrice, minBound, maxBound]);
+    const from = minPrice ? parseFloat(minPrice) : minBound
+    const to = maxPrice ? parseFloat(maxPrice) : maxBound
+    const clampedFrom = Math.max(minBound, Math.min(from, maxBound))
+    const clampedTo = Math.max(minBound, Math.min(to, maxBound))
+    setPriceRange([clampedFrom, clampedTo])
+  }, [minPrice, maxPrice, minBound, maxBound])
+
 
 
   const applyFilters = () => {
@@ -123,7 +135,7 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
   // Apply filters whenever any filter changes
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, selectedGame, selectedType, minPrice, maxPrice, startDate, endDate, transactions]);
+  }, [debouncedSearchTerm, selectedGame, selectedType, debouncedMinPrice, debouncedMaxPrice, startDate, endDate, transactions]);
 
   return (
     <section aria-labelledby="filters-title">
@@ -148,8 +160,8 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent align="end" className="w-80 p-0 z-50">
-            <Card className="p-4 bg-card border border-border">
+          <PopoverContent align="end" className="w-96 p-0 z-50">
+            <Card className="p-5 bg-popover border border-border/60 rounded-lg shadow-lg">
               <div className="space-y-4">
                 <h3 id="filters-title" className="text-base font-semibold text-foreground">Filtros</h3>
 
@@ -241,9 +253,10 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                         min={minBound}
                         max={maxBound}
                         step={1}
-                        onValueChange={(v) => {
+                        minStepsBetweenThumbs={1}
+                        onValueChange={(v) => setPriceRange(v as number[])}
+                        onValueCommit={(v) => {
                           const [from, to] = v as number[]
-                          setPriceRange([from, to])
                           setMinPrice(String(from))
                           setMaxPrice(String(to))
                         }}
