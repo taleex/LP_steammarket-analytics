@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Filter, X, ChevronDown } from "lucide-react";
+import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format, startOfDay, endOfDay } from "date-fns";
 
 interface Transaction {
   id: number;
@@ -28,6 +30,8 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
   const [selectedType, setSelectedType] = useState<string>("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [filteredCount, setFilteredCount] = useState(0);
   const [open, setOpen] = useState(false);
 
@@ -65,6 +69,23 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
       filtered = filtered.filter(transaction => transaction.price_cents <= maxPriceCents);
     }
 
+    // Date range filter
+    if (startDate) {
+      const start = startOfDay(startDate);
+      filtered = filtered.filter((transaction) => {
+        const d = new Date(transaction.date);
+        return !isNaN(d.getTime()) && d >= start;
+      });
+    }
+
+    if (endDate) {
+      const end = endOfDay(endDate);
+      filtered = filtered.filter((transaction) => {
+        const d = new Date(transaction.date);
+        return !isNaN(d.getTime()) && d <= end;
+      });
+    }
+
     setFilteredCount(filtered.length);
     onFilteredTransactions(filtered);
   };
@@ -75,15 +96,17 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
     setSelectedType("all");
     setMinPrice("");
     setMaxPrice("");
+    setStartDate(undefined);
+    setEndDate(undefined);
     onFilteredTransactions(transactions);
   };
 
-  const hasActiveFilters = searchTerm || selectedGame !== "all" || selectedType !== "all" || minPrice || maxPrice;
+  const hasActiveFilters = searchTerm || selectedGame !== "all" || selectedType !== "all" || minPrice || maxPrice || startDate || endDate;
 
   // Apply filters whenever any filter changes
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, selectedGame, selectedType, minPrice, maxPrice, transactions]);
+  }, [searchTerm, selectedGame, selectedType, minPrice, maxPrice, startDate, endDate, transactions]);
 
   return (
     <section aria-labelledby="filters-title">
@@ -109,7 +132,7 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
           </PopoverTrigger>
 
           <PopoverContent align="end" className="w-80 p-0 z-50">
-            <Card className="p-4 bg-gradient-card border border-border/50">
+            <Card className="p-4 bg-card border border-border">
               <div className="space-y-4">
                 <h3 id="filters-title" className="text-base font-semibold text-foreground">Filtros</h3>
 
@@ -141,6 +164,56 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                         <SelectItem value="sale">Vendas</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Data início */}
+                  <div className="flex flex-col gap-1">
+                    <Label>Data início</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`justify-start font-normal ${!startDate ? "text-muted-foreground" : ""}`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                          {startDate ? format(startDate, "dd/MM/yyyy") : <span>Escolher data</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={setStartDate}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Data fim */}
+                  <div className="flex flex-col gap-1">
+                    <Label>Data fim</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`justify-start font-normal ${!endDate ? "text-muted-foreground" : ""}`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                          {endDate ? format(endDate, "dd/MM/yyyy") : <span>Escolher data</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={setEndDate}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div className="flex flex-col gap-1">
