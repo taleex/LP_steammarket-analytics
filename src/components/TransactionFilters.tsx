@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, Filter, X, ChevronDown } from "lucide-react";
 
 interface Transaction {
@@ -86,113 +87,111 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
 
   return (
     <section aria-labelledby="filters-title">
-      <Collapsible open={open} onOpenChange={setOpen} className="w-full">
-        <div className="flex items-center gap-3 mb-4">
-          <CollapsibleTrigger asChild>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar itens..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            aria-label="Buscar itens"
+          />
+        </div>
+
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Filtros
               <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
             </Button>
-          </CollapsibleTrigger>
-          {hasActiveFilters && (
-            <Badge variant="secondary" className="ml-auto">
-              {filteredCount} de {transactions.length} exibidos
-            </Badge>
-          )}
-        </div>
+          </PopoverTrigger>
 
-        <CollapsibleContent>
-          <Card className="p-6 bg-gradient-card border border-border/50 backdrop-blur-sm">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 id="filters-title" className="text-lg font-semibold text-foreground">Filtros e busca</h3>
+          <PopoverContent align="end" className="w-80 p-0 z-50">
+            <Card className="p-4 bg-gradient-card border border-border/50">
+              <div className="space-y-4">
+                <h3 id="filters-title" className="text-base font-semibold text-foreground">Filtros</h3>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <Label>Jogo</Label>
+                    <Select value={selectedGame} onValueChange={setSelectedGame}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os jogos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os jogos</SelectItem>
+                        {uniqueGames.map(game => (
+                          <SelectItem key={game} value={game}>{game}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label>Tipo</Label>
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os tipos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os tipos</SelectItem>
+                        <SelectItem value="purchase">Compras</SelectItem>
+                        <SelectItem value="sale">Vendas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="minPrice">Preço mín. (€)</Label>
+                    <Input
+                      id="minPrice"
+                      type="number"
+                      placeholder="0.00"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="maxPrice">Preço máx. (€)</Label>
+                    <Input
+                      id="maxPrice"
+                      type="number"
+                      placeholder="0.00"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                </div>
+
                 {hasActiveFilters && (
-                  <div className="flex flex-wrap gap-2 ml-auto" aria-label="Filtros ativos">
-                    {searchTerm && <Badge variant="secondary">Busca: {searchTerm}</Badge>}
-                    {selectedGame !== "all" && <Badge variant="secondary">Jogo: {selectedGame}</Badge>}
-                    {selectedType !== "all" && <Badge variant="secondary">Tipo: {selectedType === "purchase" ? "Compras" : "Vendas"}</Badge>}
-                    {minPrice && <Badge variant="secondary">Min: €{minPrice}</Badge>}
-                    {maxPrice && <Badge variant="secondary">Max: €{maxPrice}</Badge>}
+                  <div className="flex items-center justify-between pt-2">
+                    <Badge variant="secondary">
+                      {filteredCount} de {transactions.length} exibidos
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Limpar
+                    </Button>
                   </div>
                 )}
               </div>
+            </Card>
+          </PopoverContent>
+        </Popover>
+      </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar itens..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                {/* Game Filter */}
-                <Select value={selectedGame} onValueChange={setSelectedGame}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os jogos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os jogos</SelectItem>
-                    {uniqueGames.map(game => (
-                      <SelectItem key={game} value={game}>{game}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Type Filter */}
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os tipos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="purchase">Compras</SelectItem>
-                    <SelectItem value="sale">Vendas</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Min Price */}
-                <Input
-                  type="number"
-                  placeholder="Preço mín. (€)"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  step="0.01"
-                  min="0"
-                />
-
-                {/* Max Price */}
-                <Input
-                  type="number"
-                  placeholder="Preço máx. (€)"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  step="0.01"
-                  min="0"
-                />
-              </div>
-
-              {hasActiveFilters && (
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="flex items-center gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    Limpar filtros
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
-        </CollapsibleContent>
-      </Collapsible>
     </section>
   );
 };
