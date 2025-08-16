@@ -70,9 +70,9 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
     let filtered = transactions;
 
     // Search filter
-    if (searchTerm) {
+    if (debouncedSearchTerm) {
       filtered = filtered.filter(transaction =>
-        transaction.item.toLowerCase().includes(searchTerm.toLowerCase())
+        transaction.item.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       );
     }
 
@@ -160,94 +160,108 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent align="end" className="w-96 p-0 z-50">
-            <Card className="p-5 bg-popover border border-border/60 rounded-lg shadow-lg">
-              <div className="space-y-4">
-                <h3 id="filters-title" className="text-base font-semibold text-foreground">Filtros</h3>
+          <PopoverContent align="end" className="w-[400px] p-0 z-50">
+            <div className="bg-card border border-border/50 rounded-xl shadow-xl overflow-hidden">
+              <div className="p-6 space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <h3 id="filters-title" className="text-lg font-semibold text-foreground">Filtros</h3>
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="text-xs">
+                      {filteredCount} resultados
+                    </Badge>
+                  )}
+                </div>
 
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <Label>Jogo</Label>
-                    <Select value={selectedGame} onValueChange={setSelectedGame}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todos os jogos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os jogos</SelectItem>
-                        {uniqueGames.map(game => (
-                          <SelectItem key={game} value={game}>{game}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {/* Filter Grid */}
+                <div className="grid gap-4">
+                  {/* Game and Type in same row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">Jogo</Label>
+                      <Select value={selectedGame} onValueChange={setSelectedGame}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os jogos</SelectItem>
+                          {uniqueGames.map(game => (
+                            <SelectItem key={game} value={game}>{game}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">Tipo</Label>
+                      <Select value={selectedType} onValueChange={setSelectedType}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os tipos</SelectItem>
+                          <SelectItem value="purchase">Compras</SelectItem>
+                          <SelectItem value="sale">Vendas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <Label>Tipo</Label>
-                    <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todos os tipos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os tipos</SelectItem>
-                        <SelectItem value="purchase">Compras</SelectItem>
-                        <SelectItem value="sale">Vendas</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  {/* Date Range */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">Data início</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`h-9 w-full justify-start text-left font-normal ${!startDate ? "text-muted-foreground" : ""}`}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                            {startDate ? format(startDate, "dd/MM/yy") : "Início"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={setStartDate}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">Data fim</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`h-9 w-full justify-start text-left font-normal ${!endDate ? "text-muted-foreground" : ""}`}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                            {endDate ? format(endDate, "dd/MM/yy") : "Fim"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={endDate}
+                            onSelect={setEndDate}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
 
-                  {/* Data início */}
-                  <div className="flex flex-col gap-1">
-                    <Label>Data início</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`justify-start font-normal ${!startDate ? "text-muted-foreground" : ""}`}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                          {startDate ? format(startDate, "dd/MM/yyyy") : <span>Escolher data</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Data fim */}
-                  <div className="flex flex-col gap-1">
-                    <Label>Data fim</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`justify-start font-normal ${!endDate ? "text-muted-foreground" : ""}`}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                          {endDate ? format(endDate, "dd/MM/yyyy") : <span>Escolher data</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label>Faixa de preço (€)</Label>
-                    <div className="px-1">
+                  {/* Price Range */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-foreground">Faixa de preço</Label>
+                    <div className="px-2 py-1">
                       <Slider
                         value={priceRange}
                         min={minBound}
@@ -260,34 +274,41 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                           setMinPrice(String(from))
                           setMaxPrice(String(to))
                         }}
+                        className="w-full"
                         aria-label="Faixa de preço"
                       />
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>€{Number(priceRange?.[0] ?? minBound).toFixed(0)}</span>
-                      <span>€{Number(priceRange?.[1] ?? maxBound).toFixed(0)}</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="bg-secondary/50 px-2 py-1 rounded text-xs font-medium">
+                        €{Number(priceRange?.[0] ?? minBound)}
+                      </span>
+                      <span className="text-muted-foreground text-xs">até</span>
+                      <span className="bg-secondary/50 px-2 py-1 rounded text-xs font-medium">
+                        €{Number(priceRange?.[1] ?? maxBound)}
+                      </span>
                     </div>
                   </div>
                 </div>
 
+                {/* Actions */}
                 {hasActiveFilters && (
-                  <div className="flex items-center justify-between pt-2">
-                    <Badge variant="secondary">
-                      {filteredCount} de {transactions.length} exibidos
-                    </Badge>
+                  <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                    <div className="text-sm text-muted-foreground">
+                      {filteredCount} de {transactions.length} transações
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={clearFilters}
-                      className="flex items-center gap-2"
+                      className="h-8 px-3 text-xs"
                     >
-                      <X className="h-4 w-4" />
-                      Limpar
+                      <X className="h-3 w-3 mr-1" />
+                      Limpar tudo
                     </Button>
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           </PopoverContent>
         </Popover>
       </div>
