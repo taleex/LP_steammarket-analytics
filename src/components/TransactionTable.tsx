@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Calculator, Database } from "lucide-react";
+import { parseTransactionDate, formatForPT } from "@/lib/date";
 
 interface Transaction {
   id: number;
@@ -26,83 +27,12 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
   };
 
   const formatDate = (dateString: string) => {
-    try {
-      console.log('Original date string:', dateString);
-      let date: Date;
-      
-      // Check if it's already a valid date string
-      if (dateString.includes('-') && dateString.includes('T')) {
-        // ISO format: 2024-01-15T10:30:00Z
-        date = new Date(dateString);
-      } else if (dateString.includes('/')) {
-        // Handle DD/MM/YYYY, DD/MM/YY, MM/DD/YYYY formats
-        const parts = dateString.split(/[\/\s,]+/);
-        console.log('Date parts:', parts);
-        
-        if (parts.length >= 3) {
-          let day = parseInt(parts[0]);
-          let month = parseInt(parts[1]) - 1; // Month is 0-indexed
-          let year = parseInt(parts[2]);
-          
-          // Handle 2-digit years (assume 21st century for years 00-30, 20th century for 31-99)
-          if (year < 100) {
-            if (year <= 30) {
-              year += 2000; // 00-30 -> 2000-2030
-            } else {
-              year += 1900; // 31-99 -> 1931-1999
-            }
-          }
-          
-          console.log('Parsed date components:', { day, month: month + 1, year });
-          
-          // Try DD/MM/YYYY format first (European)
-          date = new Date(year, month, day);
-          console.log('Created date (DD/MM/YYYY):', date);
-          
-          // If the created date doesn't match our input, try MM/DD/YYYY
-          if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
-            console.log('DD/MM/YYYY failed, trying MM/DD/YYYY');
-            date = new Date(year, day - 1, month + 1); // Swap day and month
-            console.log('Created date (MM/DD/YYYY):', date);
-          }
-          
-          // Handle time if present
-          if (parts.length >= 4) {
-            const timeParts = parts[3].split(':');
-            if (timeParts.length >= 2) {
-              date.setHours(parseInt(timeParts[0]) || 0);
-              date.setMinutes(parseInt(timeParts[1]) || 0);
-              if (timeParts.length >= 3) {
-                date.setSeconds(parseInt(timeParts[2]) || 0);
-              }
-            }
-          }
-        } else {
-          date = new Date(dateString);
-        }
-      } else {
-        // Try parsing as-is
-        date = new Date(dateString);
-      }
-      
-      console.log('Final parsed date:', date);
-      
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid date format:', dateString);
-        return dateString; // Return original string if invalid
-      }
-      
-      return date.toLocaleDateString('pt-PT', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.warn('Date parsing error:', error, 'for date:', dateString);
-      return dateString; // Return original string if error
+    const parsed = parseTransactionDate(dateString);
+    if (!parsed.date) {
+      console.warn('Invalid date format:', dateString);
+      return dateString;
     }
+    return formatForPT(parsed.date, parsed.hasTime);
   };
 
   const totals = useMemo(() => {

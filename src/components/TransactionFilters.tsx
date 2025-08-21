@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/use-debounce";
+import { parseTransactionDate } from "@/lib/date";
 
 interface Transaction {
   id: number;
@@ -101,16 +102,16 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
     if (startDate) {
       const start = startOfDay(startDate);
       filtered = filtered.filter((transaction) => {
-        const d = new Date(transaction.date);
-        return !isNaN(d.getTime()) && d >= start;
+        const parsed = parseTransactionDate(transaction.date);
+        return parsed.date && parsed.date >= start;
       });
     }
 
     if (endDate) {
       const end = endOfDay(endDate);
       filtered = filtered.filter((transaction) => {
-        const d = new Date(transaction.date);
-        return !isNaN(d.getTime()) && d <= end;
+        const parsed = parseTransactionDate(transaction.date);
+        return parsed.date && parsed.date <= end;
       });
     }
 

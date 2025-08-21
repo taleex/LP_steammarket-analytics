@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileSpreadsheet, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { parseTransactionDate } from "@/lib/date";
 
 interface Transaction {
   id: number;
@@ -62,12 +63,18 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
 
       const item = normalizedRow.item?.trim();
       const game = normalizedRow.game?.trim();
-      const date = normalizedRow.date?.trim();
+      const dateRaw = normalizedRow.date?.trim();
       const priceString = normalizedRow.price_cents?.toString().trim();
       const type = normalizedRow.type?.toLowerCase().trim();
 
-      if (!item || !game || !date || !priceString || !type) {
+      if (!item || !game || !dateRaw || !priceString || !type) {
         throw new Error(`Row ${index + 1}: Incomplete data`);
+      }
+
+      // Parse and normalize the date
+      const parsedDate = parseTransactionDate(dateRaw);
+      if (!parsedDate.date) {
+        throw new Error(`Row ${index + 1}: Invalid date format (${dateRaw})`);
       }
 
       const price_cents = parseInt(priceString);
@@ -83,7 +90,7 @@ export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
         id: index + 1,
         item,
         game,
-        date,
+        date: parsedDate.date.toISOString(), // Normalize to ISO format
         price_cents,
         type: type as "purchase" | "sale"
       };
