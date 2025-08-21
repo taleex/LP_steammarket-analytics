@@ -27,10 +27,40 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      // Handle different date formats from Steam CSV
+      let date: Date;
+      
+      // Check if it's already a valid date string
+      if (dateString.includes('-') && dateString.includes('T')) {
+        // ISO format: 2024-01-15T10:30:00Z
+        date = new Date(dateString);
+      } else if (dateString.includes('/')) {
+        // Handle MM/DD/YYYY or DD/MM/YYYY formats
+        const parts = dateString.split(/[\/\s]/);
+        if (parts.length >= 3) {
+          // Assume DD/MM/YYYY format (European)
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+          const year = parseInt(parts[2]);
+          date = new Date(year, month, day);
+          
+          // If date is invalid, try MM/DD/YYYY format
+          if (isNaN(date.getTime())) {
+            date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+          }
+        } else {
+          date = new Date(dateString);
+        }
+      } else {
+        // Try parsing as-is
+        date = new Date(dateString);
+      }
+      
       if (isNaN(date.getTime())) {
+        console.warn('Invalid date format:', dateString);
         return dateString; // Return original string if invalid
       }
+      
       return date.toLocaleDateString('pt-PT', {
         year: 'numeric',
         month: '2-digit',
@@ -38,7 +68,8 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch {
+    } catch (error) {
+      console.warn('Date parsing error:', error, 'for date:', dateString);
       return dateString; // Return original string if error
     }
   };
