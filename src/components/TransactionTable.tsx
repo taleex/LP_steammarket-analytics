@@ -27,7 +27,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
 
   const formatDate = (dateString: string) => {
     try {
-      // Handle different date formats from Steam CSV
+      console.log('Original date string:', dateString);
       let date: Date;
       
       // Check if it's already a valid date string
@@ -35,18 +35,47 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
         // ISO format: 2024-01-15T10:30:00Z
         date = new Date(dateString);
       } else if (dateString.includes('/')) {
-        // Handle MM/DD/YYYY or DD/MM/YYYY formats
-        const parts = dateString.split(/[\/\s]/);
+        // Handle DD/MM/YYYY, DD/MM/YY, MM/DD/YYYY formats
+        const parts = dateString.split(/[\/\s,]+/);
+        console.log('Date parts:', parts);
+        
         if (parts.length >= 3) {
-          // Assume DD/MM/YYYY format (European)
-          const day = parseInt(parts[0]);
-          const month = parseInt(parts[1]) - 1; // Month is 0-indexed
-          const year = parseInt(parts[2]);
-          date = new Date(year, month, day);
+          let day = parseInt(parts[0]);
+          let month = parseInt(parts[1]) - 1; // Month is 0-indexed
+          let year = parseInt(parts[2]);
           
-          // If date is invalid, try MM/DD/YYYY format
-          if (isNaN(date.getTime())) {
-            date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+          // Handle 2-digit years (assume 21st century for years 00-30, 20th century for 31-99)
+          if (year < 100) {
+            if (year <= 30) {
+              year += 2000; // 00-30 -> 2000-2030
+            } else {
+              year += 1900; // 31-99 -> 1931-1999
+            }
+          }
+          
+          console.log('Parsed date components:', { day, month: month + 1, year });
+          
+          // Try DD/MM/YYYY format first (European)
+          date = new Date(year, month, day);
+          console.log('Created date (DD/MM/YYYY):', date);
+          
+          // If the created date doesn't match our input, try MM/DD/YYYY
+          if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+            console.log('DD/MM/YYYY failed, trying MM/DD/YYYY');
+            date = new Date(year, day - 1, month + 1); // Swap day and month
+            console.log('Created date (MM/DD/YYYY):', date);
+          }
+          
+          // Handle time if present
+          if (parts.length >= 4) {
+            const timeParts = parts[3].split(':');
+            if (timeParts.length >= 2) {
+              date.setHours(parseInt(timeParts[0]) || 0);
+              date.setMinutes(parseInt(timeParts[1]) || 0);
+              if (timeParts.length >= 3) {
+                date.setSeconds(parseInt(timeParts[2]) || 0);
+              }
+            }
           }
         } else {
           date = new Date(dateString);
@@ -55,6 +84,8 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
         // Try parsing as-is
         date = new Date(dateString);
       }
+      
+      console.log('Final parsed date:', date);
       
       if (isNaN(date.getTime())) {
         console.warn('Invalid date format:', dateString);
