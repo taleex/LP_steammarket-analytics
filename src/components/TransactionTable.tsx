@@ -4,22 +4,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Calculator, Database } from "lucide-react";
 import { parseTransactionDate, formatForPT } from "@/lib/date";
-
-interface Transaction {
-  id: number;
-  item: string;
-  game: string;
-  date: string;
-  price_cents: number;
-  type: "purchase" | "sale";
-}
+import { Transaction } from "@/hooks/use-transactions";
 
 interface TransactionTableProps {
   transactions: Transaction[];
 }
 
 export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
-  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
   const formatPrice = (cents: number) => {
@@ -57,7 +49,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     };
   }, [selectedItems, transactions]);
 
-  const handleSelectItem = (id: number, checked: boolean) => {
+  const handleSelectItem = (id: string, checked: boolean) => {
     const newSelected = new Set(selectedItems);
     if (checked) {
       newSelected.add(id);
@@ -75,7 +67,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     }
   };
 
-  const handleRowClick = (index: number, id: number, e: any) => {
+  const handleRowClick = (index: number, id: string, e: any) => {
     const isSelected = selectedItems.has(id);
     const shouldSelect = !isSelected;
 

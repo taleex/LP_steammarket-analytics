@@ -1,34 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TransactionTable } from "@/components/TransactionTable";
 import { CSVUpload } from "@/components/CSVUpload";
 import { TransactionFilters } from "@/components/TransactionFilters";
-import { BarChart3, TrendingUp } from "lucide-react";
-
-interface Transaction {
-  id: number;
-  item: string;
-  game: string;
-  date: string;
-  price_cents: number;
-  type: "purchase" | "sale";
-}
+import { useTransactions, Transaction } from "@/hooks/use-transactions";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { BarChart3, TrendingUp, LogOut, User } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { transactions, loading } = useTransactions();
+  const { user, signOut } = useAuth();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
-
-  const handleDataLoaded = (data: Transaction[]) => {
-    setTransactions(data);
-    setFilteredTransactions(data);
-  };
+  
+  // Update filtered transactions when transactions change
+  useEffect(() => {
+    setFilteredTransactions(transactions);
+  }, [transactions]);
 
   const handleFilteredTransactions = (filtered: Transaction[]) => {
     setFilteredTransactions(filtered);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero">
+        <div className="container mx-auto px-4 py-12">
+          <div className="space-y-8">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-hero">
       <div className="container mx-auto px-4 py-12">
+        {/* User Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-primary rounded-lg">
+              <User className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Welcome back</p>
+              <p className="font-medium text-foreground">{user?.email}</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={signOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+
         {/* Hero Header */}
         <header className="mb-12 text-center space-y-6 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -56,7 +87,7 @@ const Index = () => {
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-profit rounded-full"></div>
-              Profit Analysis
+              Profit Analysis ({transactions.length} transactions)
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-steam-blue rounded-full"></div>
@@ -71,7 +102,6 @@ const Index = () => {
         
         <div className="space-y-12">
           <CSVUpload 
-            onDataLoaded={handleDataLoaded} 
             hasData={transactions.length > 0}
           />
           
