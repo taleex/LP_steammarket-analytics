@@ -1,26 +1,29 @@
-import React, { useRef, useState } from "react";
+import { useRef } from "react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
+import { Upload, FileSpreadsheet, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseTransactionDate } from "@/lib/date";
-import { useTransactions, Transaction } from "@/hooks/use-transactions";
-import UploadConfirmationDialog from "./UploadConfirmationDialog";
+
+interface Transaction {
+  id: number;
+  item: string;
+  game: string;
+  date: string;
+  price_cents: number;
+  type: "purchase" | "sale";
+}
 
 interface CSVUploadProps {
+  onDataLoaded: (data: Transaction[]) => void;
   hasData: boolean;
 }
 
-export const CSVUpload = ({ hasData }: CSVUploadProps) => {
+export const CSVUpload = ({ onDataLoaded, hasData }: CSVUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
-  const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const { toast } = useToast();
-  const { insertTransactions, findDuplicates, fetchTransactions } = useTransactions();
 
   const normalizeHeader = (header: string): string => {
     const headerMap: { [key: string]: string } = {
@@ -35,233 +38,178 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
     return headerMap[normalized] || normalized;
   };
 
-  const validateAndConvertData = (data: any[]): Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[] => {
-    if (!data || data.length === 0) {
-      throw new Error("CSV file is empty");
+  const validateAndConvertData = (rawData: any[]): Transaction[] => {
+    const requiredFields = ["item", "game", "date", "price_cents", "type"];
+    
+    if (rawData.length === 0) {
+      throw new Error("The CSV file is empty");
     }
 
-    const validatedData: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[] = [];
+    const firstRow = rawData[0];
+    const headers = Object.keys(firstRow).map(normalizeHeader);
+    
+    const missingFields = requiredFields.filter(field => !headers.includes(field));
+    if (missingFields.length > 0) {
+      throw new Error(`Required fields missing: ${missingFields.join(", ")}`);
+    }
 
-    data.forEach((row, index) => {
-      if (!row.item || !row.game || !row.date || !row.type) {
-        console.warn(`Row ${index + 1} is missing required fields:`, row);
-        return;
-      }
-
-      // Parse and validate the date
-      const parsedDate = parseTransactionDate(row.date);
-      if (!parsedDate.date) {
-        console.warn(`Row ${index + 1} has invalid date:`, row.date);
-        return;
-      }
-
-      // Convert price to cents
-      let priceCents: number;
-      if (typeof row.price === 'string') {
-        const priceStr = row.price.replace(/[€$,\s]/g, '');
-        priceCents = Math.round(parseFloat(priceStr) * 100);
-      } else if (typeof row.price_cents === 'string') {
-        priceCents = parseInt(row.price_cents);
-      } else {
-        priceCents = Math.round((row.price || row.price_cents || 0));
-      }
-
-      if (isNaN(priceCents)) {
-        console.warn(`Row ${index + 1} has invalid price:`, row.price || row.price_cents);
-        return;
-      }
-
-      // Validate transaction type
-      const type = row.type?.toLowerCase();
-      if (type !== 'purchase' && type !== 'sale') {
-        console.warn(`Row ${index + 1} has invalid type:`, row.type);
-        return;
-      }
-
-      validatedData.push({
-        item: String(row.item).trim(),
-        game: String(row.game).trim(),
-        date: parsedDate.date.toISOString(),
-        price_cents: priceCents,
-        type: type
+    return rawData.map((row, index) => {
+      const normalizedRow: any = {};
+      
+      Object.keys(row).forEach(key => {
+        const normalizedKey = normalizeHeader(key);
+        normalizedRow[normalizedKey] = row[key];
       });
-    });
 
-    return validatedData;
+      const item = normalizedRow.item?.trim();
+      const game = normalizedRow.game?.trim();
+      const dateRaw = normalizedRow.date?.trim();
+      const priceString = normalizedRow.price_cents?.toString().trim();
+      const type = normalizedRow.type?.toLowerCase().trim();
+
+      if (!item || !game || !dateRaw || !priceString || !type) {
+        throw new Error(`Row ${index + 1}: Incomplete data`);
+      }
+
+      // Parse and normalize the date
+      const parsedDate = parseTransactionDate(dateRaw);
+      if (!parsedDate.date) {
+        throw new Error(`Row ${index + 1}: Invalid date format (${dateRaw})`);
+      }
+
+      const price_cents = parseInt(priceString);
+      if (isNaN(price_cents) || price_cents < 0) {
+        throw new Error(`Row ${index + 1}: Invalid price (${priceString})`);
+      }
+
+      if (type !== "purchase" && type !== "sale") {
+        throw new Error(`Row ${index + 1}: Type must be 'purchase' or 'sale' (received: ${type})`);
+      }
+
+      return {
+        id: index + 1,
+        item,
+        game,
+        date: parsedDate.date.toISOString(), // Normalize to ISO format
+        price_cents,
+        type: type as "purchase" | "sale"
+      };
+    });
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    
     if (!file) return;
 
-    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
       toast({
-        title: "Invalid file type",
-        description: "Please select a CSV file.",
-        variant: "destructive",
+        title: "Invalid format",
+        description: "Please select a valid CSV file",
+        variant: "destructive"
       });
       return;
     }
 
-    setIsUploading(true);
-
-    try {
-      Papa.parse(file, {
-        header: true,
-        transformHeader: normalizeHeader,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          try {
-            if (results.errors.length > 0) {
-              console.warn("CSV parsing warnings:", results.errors);
-            }
-            
-            const validatedTransactions = validateAndConvertData(results.data);
-            
-            if (validatedTransactions.length === 0) {
-              throw new Error("No valid transactions found in the CSV file");
-            }
-
-            // Check for duplicates
-            const duplicates = await findDuplicates(validatedTransactions);
-            const uniqueTransactions = validatedTransactions.filter(
-              transaction => !duplicates.some(dup => 
-                dup.item === transaction.item &&
-                dup.game === transaction.game &&
-                dup.date === transaction.date &&
-                dup.price_cents === transaction.price_cents &&
-                dup.type === transaction.type
-              )
-            );
-
-            setPendingTransactions(uniqueTransactions);
-            setDuplicateTransactions(duplicates);
-            setShowConfirmDialog(true);
-
-          } catch (error: any) {
-            toast({
-              title: "Error processing CSV",
-              description: error.message || "Failed to process the CSV file",
-              variant: "destructive",
-            });
-          } finally {
-            setIsUploading(false);
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        try {
+          if (results.errors.length > 0) {
+            throw new Error(`CSV Error: ${results.errors[0].message}`);
           }
-        },
-        error: (error) => {
+
+          const validatedData = validateAndConvertData(results.data);
+          
+          onDataLoaded(validatedData);
+          
           toast({
-            title: "Error reading CSV",
-            description: error.message || "Failed to read the CSV file",
-            variant: "destructive",
+            title: "Upload completed",
+            description: `${validatedData.length} transactions loaded successfully`,
           });
-          setIsUploading(false);
+
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        } catch (error) {
+          toast({
+            title: "Error processing CSV",
+            description: error instanceof Error ? error.message : "Unknown error",
+            variant: "destructive"
+          });
         }
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error uploading file",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-      setIsUploading(false);
-    }
-
-    // Reset the input
-    event.target.value = '';
-  };
-
-  const handleConfirmImport = async (skipDuplicates: boolean) => {
-    const transactionsToImport = skipDuplicates 
-      ? pendingTransactions 
-      : [...pendingTransactions, ...duplicateTransactions];
-
-    const result = await insertTransactions(transactionsToImport);
-    
-    if (!result.error) {
-      setShowConfirmDialog(false);
-      setPendingTransactions([]);
-      setDuplicateTransactions([]);
-      // Refresh the transaction list
-      await fetchTransactions();
-    }
+      },
+      error: (error) => {
+        toast({
+          title: "Reading error",
+          description: `Failed to read file: ${error.message}`,
+          variant: "destructive"
+        });
+      }
+    });
   };
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
 
-  const handleClearData = () => {
-    // Since data is now in database, we would need to implement a delete function
-    // For now, just show a toast indicating this would clear all user's data
-    toast({
-      title: "Clear Data",
-      description: "This feature will be available soon to clear all your transactions.",
-    });
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="bg-gradient-card border-border/50 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <FileSpreadsheet className="h-5 w-5 text-primary-foreground" />
+      <Card className="p-8 bg-gradient-card border border-border/50 backdrop-blur-sm relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-steam-blue/5 to-primary/5 pointer-events-none" />
+        
+        <div className="relative space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <FileSpreadsheet className="h-6 w-6 text-primary" />
             </div>
-            <div>
-              <CardTitle className="text-card-foreground">Import CSV Data</CardTitle>
-              <CardDescription>
-                Upload your Steam Market transaction history for analysis
-              </CardDescription>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Import CSV Data
+              </h3>
+              <p className="text-muted-foreground">
+                Upload the CSV file exported from Steam Market for detailed analysis of your transactions
+              </p>
             </div>
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
+
           <Alert className="border-steam-blue/20 bg-steam-blue/5">
-            <AlertDescription className="text-sm">
-              <strong>Expected format:</strong> CSV with columns: "Item Name", "Game Name", "Acted On", "Price in Cents", "Type"
+            <Info className="h-4 w-4 text-steam-blue" />
+            <AlertDescription className="text-sm text-foreground">
+              <strong>Expected format:</strong> CSV must contain columns: "Item Name", "Game Name", "Acted On", "Price in Cents", "Type" (purchase/sale)
             </AlertDescription>
           </Alert>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex gap-4">
             <Button 
               onClick={triggerFileInput}
-              disabled={isUploading}
-              className="bg-gradient-primary hover:opacity-90 transition-opacity flex-1"
+              className="bg-gradient-primary text-primary-foreground hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-primary/25"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? "Processing..." : hasData ? "Import More Data" : "Upload CSV File"}
+              <Upload className="h-4 w-4 mr-2" />
+              {hasData ? "Replace Data" : "Import CSV"}
             </Button>
             
             {hasData && (
               <Button 
                 variant="outline" 
-                onClick={handleClearData}
-                className="flex items-center gap-2"
+                onClick={() => onDataLoaded([])}
+                className="border-border/50 text-foreground hover:bg-muted/50 transition-all duration-200"
               >
-                <Trash2 className="w-4 h-4" />
                 Clear Data
               </Button>
             )}
           </div>
 
           <input
-            type="file"
             ref={fileInputRef}
-            onChange={handleFileUpload}
+            type="file"
             accept=".csv"
+            onChange={handleFileUpload}
             className="hidden"
           />
-
-          <UploadConfirmationDialog
-            open={showConfirmDialog}
-            onOpenChange={setShowConfirmDialog}
-            newTransactions={pendingTransactions}
-            duplicateTransactions={duplicateTransactions}
-            onConfirm={handleConfirmImport}
-            isLoading={isUploading}
-          />
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

@@ -12,7 +12,15 @@ import { format, startOfDay, endOfDay } from "date-fns";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/use-debounce";
 import { parseTransactionDate } from "@/lib/date";
-import { Transaction } from "@/hooks/use-transactions";
+
+interface Transaction {
+  id: number;
+  item: string;
+  game: string;
+  date: string;
+  price_cents: number;
+  type: "purchase" | "sale";
+}
 
 interface TransactionFiltersProps {
   transactions: Transaction[];
