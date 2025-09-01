@@ -78,39 +78,38 @@ const UploadConfirmationDialog = ({
           <div className="space-y-4">
             {newTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-2 flex items-center gap-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-profit" />
-                  New Transactions (showing first 5)
+                  New Transactions (all {newTransactions.length})
                 </h4>
-                <ScrollArea className="h-32 border rounded-md">
-                  <div className="p-4 space-y-2">
-                    {newTransactions.slice(0, 5).map((transaction, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-3 w-3 text-muted-foreground" />
-                          <span className="font-medium">{transaction.item}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {transaction.game}
-                          </Badge>
+                <ScrollArea className="h-48 border rounded-lg bg-gradient-subtle">
+                  <div className="p-4 space-y-3">
+                    {newTransactions.map((transaction, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-4 w-4 text-profit flex-shrink-0" />
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-card-foreground">{transaction.item}</span>
+                            <Badge variant="outline" className="text-xs w-fit">
+                              {transaction.game}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <Badge 
                             variant="outline"
                             className={transaction.type === 'sale' 
-                              ? 'bg-profit/20 text-profit border-profit/30 hover:bg-profit/30' 
-                              : 'bg-loss/20 text-loss border-loss/30 hover:bg-loss/30'}
+                              ? 'bg-profit/10 text-profit border-profit/30 hover:bg-profit/20' 
+                              : 'bg-loss/10 text-loss border-loss/30 hover:bg-loss/20'}
                           >
                             {transaction.type}
                           </Badge>
-                          <span className={`font-mono ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>{formatPrice(transaction.price_cents)}</span>
+                          <span className={`font-mono font-semibold ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
+                            {formatPrice(transaction.price_cents)}
+                          </span>
                         </div>
                       </div>
                     ))}
-                    {newTransactions.length > 5 && (
-                      <p className="text-xs text-muted-foreground text-center pt-2">
-                        +{newTransactions.length - 5} more transactions
-                      </p>
-                    )}
                   </div>
                 </ScrollArea>
               </div>
@@ -118,31 +117,35 @@ const UploadConfirmationDialog = ({
 
             {duplicateTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-2 flex items-center gap-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <Copy className="h-4 w-4 text-neutral" />
                   Potential Duplicates (all {duplicateTransactions.length})
                 </h4>
-                <ScrollArea className="h-48 border rounded-md">
-                  <div className="p-4 space-y-2">
+                <ScrollArea className="h-48 border rounded-lg bg-gradient-subtle">
+                  <div className="p-4 space-y-3">
                     {duplicateTransactions.map((transaction, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm opacity-75">
-                        <div className="flex items-center gap-2">
-                          <Copy className="h-3 w-3 text-neutral" />
-                          <span className="font-medium">{transaction.item}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {transaction.game}
-                          </Badge>
+                      <div key={index} className="flex items-center justify-between p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors opacity-75">
+                        <div className="flex items-center gap-3">
+                          <Copy className="h-4 w-4 text-neutral flex-shrink-0" />
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-card-foreground">{transaction.item}</span>
+                            <Badge variant="outline" className="text-xs w-fit">
+                              {transaction.game}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <Badge 
                             variant="outline"
                             className={transaction.type === 'sale' 
-                              ? 'bg-profit/20 text-profit border-profit/30 hover:bg-profit/30' 
-                              : 'bg-loss/20 text-loss border-loss/30 hover:bg-loss/30'}
+                              ? 'bg-profit/10 text-profit border-profit/30 hover:bg-profit/20' 
+                              : 'bg-loss/10 text-loss border-loss/30 hover:bg-loss/20'}
                           >
                             {transaction.type}
                           </Badge>
-                          <span className={`font-mono ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>{formatPrice(transaction.price_cents)}</span>
+                          <span className={`font-mono font-semibold ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
+                            {formatPrice(transaction.price_cents)}
+                          </span>
                         </div>
                       </div>
                     ))}
