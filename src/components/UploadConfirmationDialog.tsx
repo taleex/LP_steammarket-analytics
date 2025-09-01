@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, AlertCircle, FileText, Upload } from 'lucide-react';
+import { CheckCircle, AlertCircle, FileText, Upload, Copy } from 'lucide-react';
 import { Transaction } from '@/hooks/use-transactions';
 
 interface UploadConfirmationDialogProps {
@@ -119,15 +119,15 @@ const UploadConfirmationDialog = ({
             {duplicateTransactions.length > 0 && (
               <div>
                 <h4 className="font-semibold text-card-foreground mb-2 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-neutral" />
-                  Potential Duplicates (showing first 5)
+                  <Copy className="h-4 w-4 text-neutral" />
+                  Potential Duplicates (all {duplicateTransactions.length})
                 </h4>
-                <ScrollArea className="h-32 border rounded-md">
+                <ScrollArea className="h-48 border rounded-md">
                   <div className="p-4 space-y-2">
-                    {duplicateTransactions.slice(0, 5).map((transaction, index) => (
+                    {duplicateTransactions.map((transaction, index) => (
                       <div key={index} className="flex items-center justify-between text-sm opacity-75">
                         <div className="flex items-center gap-2">
-                          <FileText className="h-3 w-3 text-muted-foreground" />
+                          <Copy className="h-3 w-3 text-neutral" />
                           <span className="font-medium">{transaction.item}</span>
                           <Badge variant="outline" className="text-xs">
                             {transaction.game}
@@ -146,11 +146,6 @@ const UploadConfirmationDialog = ({
                         </div>
                       </div>
                     ))}
-                    {duplicateTransactions.length > 5 && (
-                      <p className="text-xs text-muted-foreground text-center pt-2">
-                        +{duplicateTransactions.length - 5} more duplicates
-                      </p>
-                    )}
                   </div>
                 </ScrollArea>
               </div>
