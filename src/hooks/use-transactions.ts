@@ -50,72 +50,79 @@ export const useTransactions = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
-      const transactionsWithUserId = newTransactions.map(transaction => ({
+      const transactionsWithUserId = newTransactions.map((transaction) => ({
         ...transaction,
         user_id: user.id,
       }));
 
+      // Use upsert with ignoreDuplicates to respect the unique constraint
       const { data, error } = await supabase
         .from('transactions')
-        .insert(transactionsWithUserId)
+        .upsert(transactionsWithUserId, {
+          onConflict: 'user_id,item,game,date,price_cents,type',
+          ignoreDuplicates: true,
+        })
         .select();
 
       if (error) throw error;
 
-      // Update local state
-      setTransactions(prev => [...(data || []), ...prev]);
-      
+      // Update local state with newly inserted rows only (data contains inserted rows)
+      setTransactions((prev) => [...(data || []), ...prev]);
+
+      const insertedCount = data?.length || 0;
+      const requestedCount = newTransactions.length;
+      const skippedCount = Math.max(requestedCount - insertedCount, 0);
+
       toast({
-        title: "Transactions imported",
-        description: `Successfully imported ${data?.length || 0} transactions.`,
+        title: 'Transactions imported',
+        description: `Inserted ${insertedCount} new, skipped ${skippedCount} duplicates.`,
       });
 
       return { data, error: null };
     } catch (error: any) {
       toast({
-        title: "Error importing transactions",
+        title: 'Error importing transactions',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return { data: null, error };
     }
   };
-
-  const findDuplicates = async (newTransactions: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]) => {
+  const findDuplicates = async (
+    newTransactions: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]
+  ) => {
     if (!user || !newTransactions.length) return [];
 
     try {
-      const duplicates = [];
-      
-      for (const transaction of newTransactions) {
-        const { data, error } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('item', transaction.item)
-          .eq('game', transaction.game)
-          .eq('date', transaction.date)
-          .eq('price_cents', transaction.price_cents)
-          .eq('type', transaction.type);
+      // Build a fast lookup from existing transactions
+      const makeKey = (t: { item: string; game: string; date: string; price_cents: number; type: string }) => {
+        const time = new Date(t.date).getTime();
+        return `${t.item}|${t.game}|${time}|${t.price_cents}|${t.type}`;
+      };
 
-        if (error) throw error;
+      const existingKeys = new Set(transactions.map((t) => makeKey(t)));
+      const seenNew = new Set<string>();
+      const duplicates: typeof newTransactions = [];
 
-        if (data && data.length > 0) {
-          duplicates.push(transaction);
+      for (const t of newTransactions) {
+        const key = makeKey(t as any);
+        if (existingKeys.has(key) || seenNew.has(key)) {
+          duplicates.push(t);
+        } else {
+          seenNew.add(key);
         }
       }
 
       return duplicates;
     } catch (error: any) {
       toast({
-        title: "Error checking duplicates",
+        title: 'Error checking duplicates',
         description: error.message,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return [];
     }
   };
-
   useEffect(() => {
     fetchTransactions();
   }, [user]);

@@ -94,10 +94,15 @@ const UploadConfirmationDialog = ({
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={transaction.type === 'sale' ? 'default' : 'secondary'}>
+                          <Badge 
+                            variant="outline"
+                            className={transaction.type === 'sale' 
+                              ? 'bg-profit/20 text-profit border-profit/30 hover:bg-profit/30' 
+                              : 'bg-loss/20 text-loss border-loss/30 hover:bg-loss/30'}
+                          >
                             {transaction.type}
                           </Badge>
-                          <span className="font-mono text-profit">{formatPrice(transaction.price_cents)}</span>
+                          <span className={`font-mono ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>{formatPrice(transaction.price_cents)}</span>
                         </div>
                       </div>
                     ))}
@@ -129,10 +134,15 @@ const UploadConfirmationDialog = ({
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={transaction.type === 'sale' ? 'default' : 'secondary'}>
+                          <Badge 
+                            variant="outline"
+                            className={transaction.type === 'sale' 
+                              ? 'bg-profit/20 text-profit border-profit/30 hover:bg-profit/30' 
+                              : 'bg-loss/20 text-loss border-loss/30 hover:bg-loss/30'}
+                          >
                             {transaction.type}
                           </Badge>
-                          <span className="font-mono text-muted-foreground">{formatPrice(transaction.price_cents)}</span>
+                          <span className={`font-mono ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>{formatPrice(transaction.price_cents)}</span>
                         </div>
                       </div>
                     ))}
