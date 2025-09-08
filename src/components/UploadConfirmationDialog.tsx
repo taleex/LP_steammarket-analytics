@@ -43,7 +43,7 @@ const UploadConfirmationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] bg-card">
+      <DialogContent className="max-w-4xl max-h-[75vh] w-[95vw] bg-card flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Upload className="h-5 w-5" />
@@ -54,9 +54,9 @@ const UploadConfirmationDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-4 md:space-y-6 flex-1 overflow-hidden">
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 flex-shrink-0">
             <div className="flex items-center gap-2 sm:gap-3 p-3 md:p-4 bg-gradient-card rounded-lg border">
               <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-profit flex-shrink-0" />
               <div>
@@ -75,14 +75,14 @@ const UploadConfirmationDialog = ({
           </div>
 
           {/* Transaction Previews */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto">
             {newTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2 sticky top-0 bg-card z-10 pb-2">
                   <CheckCircle className="h-4 w-4 text-profit" />
                   New Transactions (all {newTransactions.length})
                 </h4>
-                <ScrollArea className="h-48 md:h-60 border rounded-lg bg-gradient-subtle">
+                <ScrollArea className="h-40 md:h-48 border rounded-lg bg-gradient-subtle">
                   <div className="p-2 md:p-4 space-y-2 md:space-y-3">
                     {newTransactions.map((transaction, index) => (
                       <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2 md:p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors">
@@ -117,11 +117,11 @@ const UploadConfirmationDialog = ({
 
             {duplicateTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2 sticky top-0 bg-card z-10 pb-2">
                   <Copy className="h-4 w-4 text-neutral" />
                   Potential Duplicates (all {duplicateTransactions.length})
                 </h4>
-                <ScrollArea className="h-48 md:h-60 border rounded-lg bg-gradient-subtle">
+                <ScrollArea className="h-40 md:h-48 border rounded-lg bg-gradient-subtle">
                   <div className="p-2 md:p-4 space-y-2 md:space-y-3">
                     {duplicateTransactions.map((transaction, index) => (
                       <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2 md:p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors opacity-75">
@@ -157,8 +157,8 @@ const UploadConfirmationDialog = ({
 
           {duplicateTransactions.length > 0 && (
             <>
-              <Separator />
-              <div className="space-y-3">
+              <Separator className="flex-shrink-0" />
+              <div className="space-y-3 flex-shrink-0">
                 <h4 className="font-semibold text-card-foreground">Duplicate Handling</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
@@ -185,7 +185,7 @@ const UploadConfirmationDialog = ({
           )}
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-shrink-0 mt-4">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
