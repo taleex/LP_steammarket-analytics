@@ -43,8 +43,8 @@ const UploadConfirmationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] w-[95vw] bg-card flex flex-col">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] bg-card">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Upload className="h-5 w-5" />
             Confirm CSV Import
@@ -54,105 +54,112 @@ const UploadConfirmationDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+        <div className="space-y-4 md:space-y-6">
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-shrink-0">
-            <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-card rounded-lg border">
-              <CheckCircle className="h-6 w-6 text-profit flex-shrink-0" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 p-3 md:p-4 bg-gradient-card rounded-lg border">
+              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-profit flex-shrink-0" />
               <div>
-                <p className="text-xl font-bold text-card-foreground">{newTransactions.length}</p>
-                <p className="text-sm text-muted-foreground">New transactions</p>
+                <p className="text-xl sm:text-2xl font-bold text-card-foreground">{newTransactions.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">New transactions</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-card rounded-lg border">
-              <AlertCircle className="h-6 w-6 text-neutral flex-shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-3 p-3 md:p-4 bg-gradient-card rounded-lg border">
+              <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-neutral flex-shrink-0" />
               <div>
-                <p className="text-xl font-bold text-card-foreground">{duplicateTransactions.length}</p>
-                <p className="text-sm text-muted-foreground">Potential duplicates</p>
+                <p className="text-xl sm:text-2xl font-bold text-card-foreground">{duplicateTransactions.length}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Potential duplicates</p>
               </div>
             </div>
           </div>
 
-          {/* Scrollable Transaction Previews */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+          {/* Transaction Previews */}
+          <div className="space-y-4">
             {newTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2 sticky top-0 bg-card z-10 py-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-profit" />
-                  New Transactions ({newTransactions.length})
+                  New Transactions (all {newTransactions.length})
                 </h4>
-                <div className="space-y-2">
-                  {newTransactions.map((transaction, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-md bg-gradient-subtle border border-border/50 hover:border-border transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <CheckCircle className="h-4 w-4 text-profit flex-shrink-0" />
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <span className="font-medium text-card-foreground text-sm truncate">{transaction.item}</span>
-                          <Badge variant="outline" className="text-xs w-fit">
-                            {transaction.game}
+                <ScrollArea className="h-48 md:h-60 border rounded-lg bg-gradient-subtle">
+                  <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+                    {newTransactions.map((transaction, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2 md:p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors">
+                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                          <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-profit flex-shrink-0" />
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="font-medium text-card-foreground text-sm md:text-base truncate">{transaction.item}</span>
+                            <Badge variant="outline" className="text-xs w-fit">
+                              {transaction.game}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                          <Badge 
+                            variant="outline"
+                            className={`text-xs ${transaction.type === 'sale' 
+                              ? 'bg-profit/10 text-profit border-profit/30 hover:bg-profit/20' 
+                              : 'bg-loss/10 text-loss border-loss/30 hover:bg-loss/20'}`}
+                          >
+                            {transaction.type}
                           </Badge>
+                          <span className={`font-mono font-semibold text-sm md:text-base ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
+                            {formatPrice(transaction.price_cents)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge 
-                          variant="outline"
-                          className={`text-xs ${transaction.type === 'sale' 
-                            ? 'bg-profit/10 text-profit border-profit/30' 
-                            : 'bg-loss/10 text-loss border-loss/30'}`}
-                        >
-                          {transaction.type}
-                        </Badge>
-                        <span className={`font-mono font-semibold text-sm ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
-                          {formatPrice(transaction.price_cents)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             )}
 
             {duplicateTransactions.length > 0 && (
               <div>
-                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2 sticky top-0 bg-card z-10 py-2">
+                <h4 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <Copy className="h-4 w-4 text-neutral" />
-                  Potential Duplicates ({duplicateTransactions.length})
+                  Potential Duplicates (all {duplicateTransactions.length})
                 </h4>
-                <div className="space-y-2">
-                  {duplicateTransactions.map((transaction, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-md bg-gradient-subtle border border-border/50 hover:border-border transition-colors opacity-75">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Copy className="h-4 w-4 text-neutral flex-shrink-0" />
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <span className="font-medium text-card-foreground text-sm truncate">{transaction.item}</span>
-                          <Badge variant="outline" className="text-xs w-fit">
-                            {transaction.game}
+                <ScrollArea className="h-48 md:h-60 border rounded-lg bg-gradient-subtle">
+                  <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+                    {duplicateTransactions.map((transaction, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2 md:p-3 rounded-md bg-card border border-border/50 hover:border-border transition-colors opacity-75">
+                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                          <Copy className="h-3 w-3 md:h-4 md:w-4 text-neutral flex-shrink-0" />
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="font-medium text-card-foreground text-sm md:text-base truncate">{transaction.item}</span>
+                            <Badge variant="outline" className="text-xs w-fit">
+                              {transaction.game}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                          <Badge 
+                            variant="outline"
+                            className={`text-xs ${transaction.type === 'sale' 
+                              ? 'bg-profit/10 text-profit border-profit/30 hover:bg-profit/20' 
+                              : 'bg-loss/10 text-loss border-loss/30 hover:bg-loss/20'}`}
+                          >
+                            {transaction.type}
                           </Badge>
+                          <span className={`font-mono font-semibold text-sm md:text-base ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
+                            {formatPrice(transaction.price_cents)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge 
-                          variant="outline"
-                          className={`text-xs ${transaction.type === 'sale' 
-                            ? 'bg-profit/10 text-profit border-profit/30' 
-                            : 'bg-loss/10 text-loss border-loss/30'}`}
-                        >
-                          {transaction.type}
-                        </Badge>
-                        <span className={`font-mono font-semibold text-sm ${transaction.type === 'sale' ? 'text-profit' : 'text-loss'}`}>
-                          {formatPrice(transaction.price_cents)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             )}
+          </div>
 
-            {duplicateTransactions.length > 0 && (
-              <div className="pt-4 border-t">
-                <h4 className="font-semibold text-card-foreground mb-3">Duplicate Handling</h4>
+          {duplicateTransactions.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h4 className="font-semibold text-card-foreground">Duplicate Handling</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -174,11 +181,11 @@ const UploadConfirmationDialog = ({
                   </label>
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
-        <DialogFooter className="flex-shrink-0 flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t">
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
