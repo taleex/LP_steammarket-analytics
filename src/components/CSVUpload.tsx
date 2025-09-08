@@ -3,6 +3,7 @@ import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseTransactionDate } from "@/lib/date";
@@ -17,10 +18,11 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const { toast } = useToast();
-  const { insertTransactions, findDuplicates, fetchTransactions } = useTransactions();
+  const { insertTransactions, findDuplicates, fetchTransactions, deleteAllTransactions } = useTransactions();
 
   const normalizeHeader = (header: string): string => {
     const headerMap: { [key: string]: string } = {
@@ -191,12 +193,12 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
   };
 
   const handleClearData = () => {
-    // Since data is now in database, we would need to implement a delete function
-    // For now, just show a toast indicating this would clear all user's data
-    toast({
-      title: "Clear Data",
-      description: "This feature will be available soon to clear all your transactions.",
-    });
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await deleteAllTransactions();
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -261,6 +263,23 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
             onConfirm={handleConfirmImport}
             isLoading={isUploading}
           />
+
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear All Data</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete all your transactions? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

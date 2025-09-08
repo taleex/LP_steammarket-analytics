@@ -152,11 +152,49 @@ export const useTransactions = () => {
     };
   }, [user]);
 
+  const deleteAllTransactions = async () => {
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (error) {
+        console.error("Error deleting transactions:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete transactions. Please try again.",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
+      // Update local state
+      setTransactions([]);
+      
+      toast({
+        title: "Success",
+        description: "All transactions have been deleted.",
+      });
+
+      return { error: null };
+    } catch (error: any) {
+      console.error("Error deleting transactions:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting transactions.",
+        variant: "destructive",
+      });
+      return { error };
+    }
+  };
+
   return {
     transactions,
     loading,
     fetchTransactions,
     insertTransactions,
     findDuplicates,
+    deleteAllTransactions,
   };
 };
