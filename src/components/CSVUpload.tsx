@@ -183,8 +183,7 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
       setShowConfirmDialog(false);
       setPendingTransactions([]);
       setDuplicateTransactions([]);
-      // Refresh the transaction list
-      await fetchTransactions();
+      // Real-time subscription will handle data updates automatically
     }
   };
 

@@ -66,9 +66,7 @@ export const useTransactions = () => {
 
       if (error) throw error;
 
-      // Update local state with newly inserted rows only (data contains inserted rows)
-      setTransactions((prev) => [...(data || []), ...prev]);
-
+      // Real-time subscription will handle state updates automatically
       const insertedCount = data?.length || 0;
       const requestedCount = newTransactions.length;
       const skippedCount = Math.max(requestedCount - insertedCount, 0);
@@ -169,9 +167,7 @@ export const useTransactions = () => {
         return { error };
       }
 
-      // Update local state
-      setTransactions([]);
-      
+      // Real-time subscription will handle state updates automatically
       toast({
         title: "Success",
         description: "All transactions have been deleted.",
