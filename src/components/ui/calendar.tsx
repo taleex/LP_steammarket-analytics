@@ -49,9 +49,9 @@ function Calendar({
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
-        dropdown_month: "relative flex h-8 min-w-[80px] cursor-pointer appearance-none items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-        dropdown_year: "relative flex h-8 min-w-[65px] cursor-pointer appearance-none items-center justify-between rounded-md border border-input bg-background px-3 py-1 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-        dropdown: "absolute left-0 top-full mt-1 max-h-[200px] min-w-full overflow-y-auto rounded-md border border-input bg-background shadow-lg z-[100]",
+        dropdown_month: "relative flex h-8 min-w-[90px] cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-background px-2 py-1 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring",
+        dropdown_year: "relative flex h-8 min-w-[70px] cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-background px-2 py-1 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring",
+        dropdown: "absolute left-0 top-full mt-1 max-h-[120px] min-w-full overflow-y-auto rounded-md border border-input bg-background shadow-lg z-[100] scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent",
         caption_dropdowns: "flex justify-center gap-2 items-center",
         ...classNames,
       }}
