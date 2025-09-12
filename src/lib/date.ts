@@ -82,10 +82,9 @@ function parseNumericDate(dateString: string): ParsedDate {
   let year = parseInt(parts[2]);
   let hasTime = false;
 
-  // Handle 2-digit years
+  // Handle 2-digit years - assume Steam Market dates are from 2000 onwards
   if (year < 100) {
-    // Assume recent dates: 00-30 -> 2000-2030, 31-99 -> 1931-1999
-    if (year <= 30) {
+    if (year <= 50) {
       year += 2000;
     } else {
       year += 1900;
@@ -200,14 +199,5 @@ export function formatForPT(date: Date, hasTime: boolean): string {
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
   
-  const dateStr = `${day}/${month}/${year}`;
-  
-  if (!hasTime) {
-    return dateStr;
-  }
-  
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  
-  return `${dateStr}, ${hours}:${minutes}`;
+  return `${day}/${month}/${year}`;
 }
