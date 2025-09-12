@@ -221,6 +221,10 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                             onSelect={setStartDate}
                             initialFocus
                             className="p-3 pointer-events-auto"
+                            showOutsideDays={false}
+                            captionLayout="dropdown-buttons"
+                            fromYear={2000}
+                            toYear={new Date().getFullYear()}
                           />
                         </PopoverContent>
                       </Popover>
@@ -245,6 +249,10 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                             onSelect={setEndDate}
                             initialFocus
                             className="p-3 pointer-events-auto"
+                            showOutsideDays={false}
+                            captionLayout="dropdown-buttons"
+                            fromYear={2000}
+                            toYear={new Date().getFullYear()}
                           />
                         </PopoverContent>
                       </Popover>
