@@ -214,19 +214,19 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                             {startDate ? format(startDate, "dd/MM/yy") : "Início"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                            showOutsideDays={false}
-                            captionLayout="dropdown-buttons"
-                            fromYear={2000}
-                            toYear={new Date().getFullYear()}
-                          />
-                        </PopoverContent>
+                         <PopoverContent className="w-auto p-0" align="start">
+                           <Calendar
+                             mode="single"
+                             selected={startDate}
+                             onSelect={setStartDate}
+                             initialFocus
+                             className="p-2 pointer-events-auto"
+                             showOutsideDays={false}
+                             captionLayout="dropdown-buttons"
+                             fromYear={2000}
+                             toYear={new Date().getFullYear()}
+                           />
+                         </PopoverContent>
                       </Popover>
                     </div>
 
@@ -242,19 +242,19 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                             {endDate ? format(endDate, "dd/MM/yy") : "Fim"}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={endDate}
-                            onSelect={setEndDate}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                            showOutsideDays={false}
-                            captionLayout="dropdown-buttons"
-                            fromYear={2000}
-                            toYear={new Date().getFullYear()}
-                          />
-                        </PopoverContent>
+                         <PopoverContent className="w-auto p-0" align="start">
+                           <Calendar
+                             mode="single"
+                             selected={endDate}
+                             onSelect={setEndDate}
+                             initialFocus
+                             className="p-2 pointer-events-auto"
+                             showOutsideDays={false}
+                             captionLayout="dropdown-buttons"
+                             fromYear={2000}
+                             toYear={new Date().getFullYear()}
+                           />
+                         </PopoverContent>
                       </Popover>
                     </div>
                   </div>
