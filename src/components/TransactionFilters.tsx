@@ -169,17 +169,17 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                 {/* Filter Grid */}
                 <div className="grid gap-4">
                   {/* Game and Type in same row */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Jogo</Label>
                       <Select value={selectedGame} onValueChange={setSelectedGame}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Todos" />
+                        <SelectTrigger className="h-10 border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors">
+                          <SelectValue placeholder="Todos os jogos" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os jogos</SelectItem>
+                        <SelectContent className="max-h-[200px] border-border/50 shadow-lg">
+                          <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">Todos os jogos</SelectItem>
                           {uniqueGames.map(game => (
-                            <SelectItem key={game} value={game}>{game}</SelectItem>
+                            <SelectItem key={game} value={game} className="focus:bg-accent/80 cursor-pointer">{game}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -188,13 +188,13 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Tipo</Label>
                       <Select value={selectedType} onValueChange={setSelectedType}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Todos" />
+                        <SelectTrigger className="h-10 border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors">
+                          <SelectValue placeholder="Todos os tipos" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os tipos</SelectItem>
-                          <SelectItem value="purchase">Compras</SelectItem>
-                          <SelectItem value="sale">Vendas</SelectItem>
+                        <SelectContent className="max-h-[200px] border-border/50 shadow-lg">
+                          <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">Todos os tipos</SelectItem>
+                          <SelectItem value="purchase" className="focus:bg-accent/80 cursor-pointer">Compras</SelectItem>
+                          <SelectItem value="sale" className="focus:bg-accent/80 cursor-pointer">Vendas</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
