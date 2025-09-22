@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, TrendingUp, Mail, Lock } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -36,76 +36,69 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4 animate-fade-in">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-primary rounded-xl shadow-lg animate-glow">
-              <BarChart3 className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <div className="p-3 bg-gradient-steam rounded-xl shadow-lg">
-              <TrendingUp className="h-8 w-8 text-white" />
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center">
+            <div className="p-4 bg-primary/10 rounded-2xl">
+              <BarChart3 className="h-10 w-10 text-primary" />
             </div>
           </div>
           
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">
+          <div className="space-y-3">
+            <h1 className="text-4xl font-bold text-foreground tracking-tight">
               Steam Market
-              <span className="bg-gradient-primary bg-clip-text text-transparent block">
+              <span className="block text-primary font-semibold">
                 Analytics
               </span>
             </h1>
-            <p className="text-muted-foreground">
-              Sign in to access your transaction analytics
+            <p className="text-muted-foreground text-sm">
+              Analyze your Steam Market transactions
             </p>
           </div>
         </div>
 
         {/* Auth Forms */}
-        <Card className="bg-gradient-card border-border/50 backdrop-blur">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-card-foreground">Welcome</CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              Choose your authentication method
+        <Card className="border-border/50 shadow-lg">
+          <CardHeader className="space-y-3 pb-6">
+            <CardTitle className="text-xl text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center text-sm">
+              Sign in to your account or create a new one
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-8">
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/30">
+                <TabsTrigger value="signin" className="text-sm">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
               </TabsList>
               
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="text-card-foreground">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <form onSubmit={handleSignIn} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email" className="text-sm font-medium">Email</Label>
                       <Input
                         id="signin-email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="h-11"
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-card-foreground">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password" className="text-sm font-medium">Password</Label>
                       <Input
                         id="signin-password"
                         type="password"
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
+                        className="h-11"
                         required
                       />
                     </div>
@@ -113,7 +106,7 @@ const Auth = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
+                    className="w-full h-11"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -122,34 +115,30 @@ const Auth = () => {
               </TabsContent>
               
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-card-foreground">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <form onSubmit={handleSignUp} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="h-11"
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-card-foreground">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Create a password (min. 6 characters)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
+                        className="h-11"
                         required
                         minLength={6}
                       />
@@ -158,7 +147,7 @@ const Auth = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-steam hover:opacity-90 transition-opacity"
+                    className="w-full h-11"
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating account..." : "Create Account"}
