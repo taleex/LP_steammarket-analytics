@@ -176,7 +176,12 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                         <SelectTrigger className="h-10 border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors">
                           <SelectValue placeholder="Todos os jogos" />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[200px] border-border/50 shadow-lg">
+                        <SelectContent 
+                          className="max-h-[200px] border-border/50 shadow-lg overflow-y-auto"
+                          style={{ width: 'var(--radix-select-trigger-width)' }}
+                          position="popper"
+                          sideOffset={4}
+                        >
                           <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">Todos os jogos</SelectItem>
                           {uniqueGames.map(game => (
                             <SelectItem key={game} value={game} className="focus:bg-accent/80 cursor-pointer">{game}</SelectItem>
@@ -191,7 +196,12 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                         <SelectTrigger className="h-10 border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors">
                           <SelectValue placeholder="Todos os tipos" />
                         </SelectTrigger>
-                        <SelectContent className="max-h-[200px] border-border/50 shadow-lg">
+                        <SelectContent 
+                          className="max-h-[200px] border-border/50 shadow-lg overflow-y-auto"
+                          style={{ width: 'var(--radix-select-trigger-width)' }}
+                          position="popper"
+                          sideOffset={4}
+                        >
                           <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">Todos os tipos</SelectItem>
                           <SelectItem value="purchase" className="focus:bg-accent/80 cursor-pointer">Compras</SelectItem>
                           <SelectItem value="sale" className="focus:bg-accent/80 cursor-pointer">Vendas</SelectItem>
