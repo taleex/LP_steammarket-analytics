@@ -22,7 +22,7 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
   const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
   const { toast } = useToast();
-  const { insertTransactions, findDuplicates, fetchTransactions, deleteAllTransactions } = useTransactions();
+  const { insertTransactions, fetchTransactions, deleteAllTransactions } = useTransactions();
 
   const normalizeHeader = (header: string): string => {
     const headerMap: { [key: string]: string } = {
@@ -124,20 +124,9 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
               throw new Error("No valid transactions found in the CSV file");
             }
 
-            // Check for duplicates
-            const duplicates = await findDuplicates(validatedTransactions);
-            const uniqueTransactions = validatedTransactions.filter(
-              transaction => !duplicates.some(dup => 
-                dup.item === transaction.item &&
-                dup.game === transaction.game &&
-                dup.date === transaction.date &&
-                dup.price_cents === transaction.price_cents &&
-                dup.type === transaction.type
-              )
-            );
-
-            setPendingTransactions(uniqueTransactions);
-            setDuplicateTransactions(duplicates);
+            // Set all transactions to be imported
+            setPendingTransactions(validatedTransactions);
+            setDuplicateTransactions([]);
             setShowConfirmDialog(true);
 
           } catch (error: any) {
@@ -172,12 +161,8 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
     event.target.value = '';
   };
 
-  const handleConfirmImport = async (skipDuplicates: boolean) => {
-    const transactionsToImport = skipDuplicates 
-      ? pendingTransactions 
-      : [...pendingTransactions, ...duplicateTransactions];
-
-    const result = await insertTransactions(transactionsToImport);
+  const handleConfirmImport = async () => {
+    const result = await insertTransactions(pendingTransactions);
     
     if (!result.error) {
       setShowConfirmDialog(false);
@@ -258,7 +243,6 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
             open={showConfirmDialog}
             onOpenChange={setShowConfirmDialog}
             newTransactions={pendingTransactions}
-            duplicateTransactions={duplicateTransactions}
             onConfirm={handleConfirmImport}
             isLoading={isUploading}
           />
