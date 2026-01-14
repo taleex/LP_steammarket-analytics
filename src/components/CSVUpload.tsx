@@ -19,10 +19,10 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
-  const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]>([]);
+  const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
+  const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
   const { toast } = useToast();
-  const { insertTransactions, fetchTransactions, deleteAllTransactions } = useTransactions();
+  const { insertTransactions, deleteAllTransactions } = useTransactions();
 
   const normalizeHeader = (header: string): string => {
     const headerMap: { [key: string]: string } = {
@@ -37,12 +37,12 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
     return headerMap[normalized] || normalized;
   };
 
-  const validateAndConvertData = (data: any[]): Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[] => {
+  const validateAndConvertData = (data: any[]): Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[] => {
     if (!data || data.length === 0) {
       throw new Error("CSV file is empty");
     }
 
-    const validatedData: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[] = [];
+    const validatedData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[] = [];
 
     data.forEach((row, index) => {
       if (!row.item || !row.game || !row.date || !row.type) {
