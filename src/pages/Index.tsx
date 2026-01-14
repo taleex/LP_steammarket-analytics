@@ -7,7 +7,7 @@ import { BarChart3, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const { transactions, loading } = useTransactions();
+  const { transactions, loading, insertTransactions, deleteAllTransactions } = useTransactions();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   
   useEffect(() => {
@@ -78,6 +78,8 @@ const Index = () => {
         <div className="space-y-12">
           <CSVUpload 
             hasData={transactions.length > 0}
+            insertTransactions={insertTransactions}
+            deleteAllTransactions={deleteAllTransactions}
           />
           
           {transactions.length > 0 && (

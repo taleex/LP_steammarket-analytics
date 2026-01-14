@@ -12,9 +12,11 @@ import UploadConfirmationDialog from "./UploadConfirmationDialog";
 
 interface CSVUploadProps {
   hasData: boolean;
+  insertTransactions: (transactions: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]) => { data: any; error: any };
+  deleteAllTransactions: () => { error: any };
 }
 
-export const CSVUpload = ({ hasData }: CSVUploadProps) => {
+export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }: CSVUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -22,7 +24,6 @@ export const CSVUpload = ({ hasData }: CSVUploadProps) => {
   const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
   const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
   const { toast } = useToast();
-  const { insertTransactions, deleteAllTransactions } = useTransactions();
 
   const normalizeHeader = (header: string): string => {
     const headerMap: { [key: string]: string } = {
