@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Calculator, Database } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Calculator, Database, X, CheckSquare, Square } from "lucide-react";
 import { parseTransactionDate, formatForPT } from "@/lib/date";
 import { Transaction } from "@/hooks/use-transactions";
 
@@ -13,6 +14,23 @@ interface TransactionTableProps {
 export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
+  const [isShiftHeld, setIsShiftHeld] = useState(false);
+
+  // Track shift key state for visual feedback
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setIsShiftHeld(true);
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setIsShiftHeld(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const formatPrice = (cents: number) => {
     return `€${(cents / 100).toFixed(2)}`;
@@ -49,42 +67,50 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     };
   }, [selectedItems, transactions]);
 
-  const handleSelectItem = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedItems);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedItems(newSelected);
-  };
+  const handleSelectItem = useCallback((id: string, checked: boolean) => {
+    setSelectedItems(prev => {
+      const newSelected = new Set(prev);
+      if (checked) {
+        newSelected.add(id);
+      } else {
+        newSelected.delete(id);
+      }
+      return newSelected;
+    });
+  }, []);
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedItems(new Set(transactions.map(t => t.id)));
-    } else {
+  const handleSelectAll = useCallback(() => {
+    if (selectedItems.size === transactions.length) {
       setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(transactions.map(t => t.id)));
     }
-  };
+  }, [selectedItems.size, transactions]);
 
-  const handleRowClick = (index: number, id: string, e: any) => {
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems(new Set());
+    setLastClickedIndex(null);
+  }, []);
+
+  const handleRowClick = useCallback((index: number, id: string, e: React.MouseEvent) => {
     const isSelected = selectedItems.has(id);
     const shouldSelect = !isSelected;
 
     if (e.shiftKey && lastClickedIndex !== null) {
       const start = Math.min(lastClickedIndex, index);
       const end = Math.max(lastClickedIndex, index);
-      const newSelected = new Set(selectedItems);
-
-      for (let i = start; i <= end; i++) {
-        const rangeId = transactions[i]?.id;
-        if (rangeId !== undefined) {
-          if (shouldSelect) newSelected.add(rangeId);
-          else newSelected.delete(rangeId);
+      
+      setSelectedItems(prev => {
+        const newSelected = new Set(prev);
+        for (let i = start; i <= end; i++) {
+          const rangeId = transactions[i]?.id;
+          if (rangeId !== undefined) {
+            if (shouldSelect) newSelected.add(rangeId);
+            else newSelected.delete(rangeId);
+          }
         }
-      }
-
-      setSelectedItems(newSelected);
+        return newSelected;
+      });
     } else {
       handleSelectItem(id, shouldSelect);
     }
@@ -97,7 +123,10 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
         window.getSelection()?.removeAllRanges();
       } catch {}
     }
-  };
+  }, [selectedItems, lastClickedIndex, transactions, handleSelectItem]);
+
+  const isAllSelected = transactions.length > 0 && selectedItems.size === transactions.length;
+  const isPartiallySelected = selectedItems.size > 0 && selectedItems.size < transactions.length;
   if (transactions.length === 0) {
     return (
       <div className="space-y-8 animate-slide-up">
@@ -190,21 +219,69 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
       {/* Transaction Table */}
       <Card className="bg-gradient-card border border-border/50 overflow-hidden backdrop-blur-sm">
         <div className="p-6 border-b border-border/50 bg-muted/5">
-          <h3 className="text-lg font-semibold text-foreground">
-            Transaction History
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Select transactions for detailed analysis
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Transaction History
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {isShiftHeld ? (
+                  <span className="text-steam-blue">Hold Shift + Click to select range</span>
+                ) : (
+                  "Click to select • Shift+Click for range"
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="text-xs"
+              >
+                {isAllSelected ? (
+                  <>
+                    <Square className="h-3 w-3 mr-1" />
+                    Deselect All
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="h-3 w-3 mr-1" />
+                    Select All
+                  </>
+                )}
+              </Button>
+              {selectedItems.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearSelection}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear ({selectedItems.size})
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border/50 bg-muted/10">
-                <th className="text-left p-4 font-semibold text-foreground">
+                <th className="text-left p-4 font-semibold text-foreground w-12">
                   <Checkbox
-                    checked={selectedItems.size === transactions.length && transactions.length > 0}
+                    checked={isAllSelected}
+                    ref={(el) => {
+                      if (el) {
+                        const input = el.querySelector('button');
+                        if (input) {
+                          (input as any).indeterminate = isPartiallySelected;
+                        }
+                      }
+                    }}
+                    className={isPartiallySelected ? "data-[state=checked]:bg-primary/50" : ""}
                     onCheckedChange={handleSelectAll}
                   />
                 </th>
@@ -216,53 +293,64 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
               </tr>
             </thead>
             <tbody>
-              {transactions.map((transaction, index) => (
-                <tr 
-                  key={transaction.id} 
-                  className={`border-b border-border/30 hover:bg-muted/20 transition-colors duration-200 animate-fade-in cursor-pointer ${
-                    selectedItems.has(transaction.id) ? 'bg-primary/5 border-primary/20' : ''
-                  }`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  onMouseDown={(e) => { if (e.shiftKey && e.button === 0) e.preventDefault(); }}
-                  onClick={(e) => handleRowClick(index, transaction.id, e)}
-                >
-                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedItems.has(transaction.id)}
-                      onCheckedChange={(checked) => 
-                        handleSelectItem(transaction.id, checked as boolean)
+              {transactions.map((transaction, index) => {
+                const isSelected = selectedItems.has(transaction.id);
+                return (
+                  <tr 
+                    key={transaction.id} 
+                    className={`
+                      border-b border-border/30 
+                      transition-all duration-150 ease-out
+                      cursor-pointer select-none
+                      ${isSelected 
+                        ? 'bg-primary/10 border-l-2 border-l-primary shadow-sm' 
+                        : 'hover:bg-muted/30 border-l-2 border-l-transparent'
                       }
-                    />
-                  </td>
-                  <td className="p-4 text-foreground font-medium max-w-xs">
-                    <div className="truncate" title={transaction.item}>
-                      {transaction.item}
-                    </div>
-                  </td>
-                  <td className="p-4 text-muted-foreground font-mono text-sm">
-                    {transaction.game}
-                  </td>
-                  <td className="p-4 text-muted-foreground font-mono text-sm">
-                    {formatDate(transaction.date)}
-                  </td>
-                  <td className="p-4">
-                    <Badge 
-                      variant={transaction.type === "sale" ? "default" : "secondary"}
-                      className={transaction.type === "sale" ? 
-                        "bg-profit/20 text-profit border-profit/30 hover:bg-profit/30" : 
-                        "bg-loss/20 text-loss border-loss/30 hover:bg-loss/30"
-                      }
-                    >
-                      {transaction.type === "sale" ? "Sale" : "Purchase"}
-                    </Badge>
-                  </td>
-                  <td className={`p-4 font-bold font-mono ${
-                    transaction.type === "sale" ? "text-profit" : "text-loss"
-                  }`}>
-                    {formatPrice(transaction.price_cents)}
-                  </td>
-                </tr>
-              ))}
+                      ${isShiftHeld && lastClickedIndex !== null ? 'hover:bg-steam-blue/10' : ''}
+                    `}
+                    style={{ animationDelay: `${Math.min(index * 20, 500)}ms` }}
+                    onMouseDown={(e) => { if (e.shiftKey && e.button === 0) e.preventDefault(); }}
+                    onClick={(e) => handleRowClick(index, transaction.id, e)}
+                  >
+                    <td className="p-4 w-12" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => 
+                          handleSelectItem(transaction.id, checked as boolean)
+                        }
+                        className="transition-transform duration-150 hover:scale-110"
+                      />
+                    </td>
+                    <td className="p-4 text-foreground font-medium max-w-xs">
+                      <div className="truncate" title={transaction.item}>
+                        {transaction.item}
+                      </div>
+                    </td>
+                    <td className="p-4 text-muted-foreground font-mono text-sm">
+                      {transaction.game}
+                    </td>
+                    <td className="p-4 text-muted-foreground font-mono text-sm">
+                      {formatDate(transaction.date)}
+                    </td>
+                    <td className="p-4">
+                      <Badge 
+                        variant={transaction.type === "sale" ? "default" : "secondary"}
+                        className={transaction.type === "sale" ? 
+                          "bg-profit/20 text-profit border-profit/30 hover:bg-profit/30" : 
+                          "bg-loss/20 text-loss border-loss/30 hover:bg-loss/30"
+                        }
+                      >
+                        {transaction.type === "sale" ? "Sale" : "Purchase"}
+                      </Badge>
+                    </td>
+                    <td className={`p-4 font-bold font-mono ${
+                      transaction.type === "sale" ? "text-profit" : "text-loss"
+                    }`}>
+                      {formatPrice(transaction.price_cents)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
