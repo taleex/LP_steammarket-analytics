@@ -1,18 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Transaction, NewTransaction } from '@/types/transaction';
 
 const STORAGE_KEY = 'steam-market-transactions';
-
-export interface Transaction {
-  id: string;
-  item: string;
-  game: string;
-  date: string;
-  price_cents: number;
-  type: string;
-  created_at: string;
-  updated_at: string;
-}
 
 const loadFromStorage = (): Transaction[] => {
   try {
@@ -38,7 +28,7 @@ export const useTransactions = () => {
     setLoading(false);
   }, []);
 
-  const insertTransactions = (newTransactions: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]) => {
+  const insertTransactions = (newTransactions: NewTransaction[]) => {
     const now = new Date().toISOString();
     const withIds = newTransactions.map((t) => ({
       ...t,
@@ -81,3 +71,6 @@ export const useTransactions = () => {
     deleteAllTransactions,
   };
 };
+
+// Re-export Transaction type for convenience
+export type { Transaction } from '@/types/transaction';

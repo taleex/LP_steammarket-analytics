@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,14 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { CheckCircle, AlertCircle, FileText, Upload, Copy } from 'lucide-react';
-import { Transaction } from '@/hooks/use-transactions';
+import { CheckCircle, Upload } from 'lucide-react';
+import { NewTransaction } from '@/types/transaction';
+import { formatPrice } from '@/lib/format';
 
 interface UploadConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  newTransactions: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[];
+  newTransactions: NewTransaction[];
   onConfirm: () => void;
   isLoading: boolean;
 }
@@ -29,11 +28,6 @@ const UploadConfirmationDialog = ({
   onConfirm,
   isLoading
 }: UploadConfirmationDialogProps) => {
-
-  const formatPrice = (priceCents: number) => {
-    return `€${(priceCents / 100).toFixed(2)}`;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-PT');
   };
