@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { TransactionTable } from "@/components/TransactionTable";
 import { CSVUpload } from "@/components/CSVUpload";
 import { TransactionFilters } from "@/components/TransactionFilters";
-import { useTransactions, Transaction } from "@/hooks/use-transactions";
+import { useTransactions } from "@/hooks/use-transactions";
+import { Transaction } from "@/types/transaction";
 import { BarChart3, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 

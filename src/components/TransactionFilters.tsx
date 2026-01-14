@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,7 +11,7 @@ import { format, startOfDay, endOfDay } from "date-fns";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/use-debounce";
 import { parseTransactionDate } from "@/lib/date";
-import { Transaction } from "@/hooks/use-transactions";
+import { Transaction } from "@/types/transaction";
 
 interface TransactionFiltersProps {
   transactions: Transaction[];
@@ -35,29 +34,27 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
   const debouncedMinPrice = useDebounce(minPrice, 250);
   const debouncedMaxPrice = useDebounce(maxPrice, 250);
 
-
   // Get unique games from transactions
   const uniqueGames = Array.from(new Set(transactions.map(t => t.game))).sort();
 
   // Price bounds derived from data (in €)
-  const pricesEuros = transactions.map((t) => t.price_cents / 100)
-  let minBound = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0
-  let maxBound = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000
+  const pricesEuros = transactions.map((t) => t.price_cents / 100);
+  let minBound = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0;
+  let maxBound = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000;
   if (maxBound <= minBound) {
-    maxBound = minBound + 1
+    maxBound = minBound + 1;
   }
 
   // Slider display state mirrors min/max filters
-  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound])
+  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound]);
+  
   useEffect(() => {
-    const from = minPrice ? parseFloat(minPrice) : minBound
-    const to = maxPrice ? parseFloat(maxPrice) : maxBound
-    const clampedFrom = Math.max(minBound, Math.min(from, maxBound))
-    const clampedTo = Math.max(minBound, Math.min(to, maxBound))
-    setPriceRange([clampedFrom, clampedTo])
-  }, [minPrice, maxPrice, minBound, maxBound])
-
-
+    const from = minPrice ? parseFloat(minPrice) : minBound;
+    const to = maxPrice ? parseFloat(maxPrice) : maxBound;
+    const clampedFrom = Math.max(minBound, Math.min(from, maxBound));
+    const clampedTo = Math.max(minBound, Math.min(to, maxBound));
+    setPriceRange([clampedFrom, clampedTo]);
+  }, [minPrice, maxPrice, minBound, maxBound]);
 
   const applyFilters = () => {
     let filtered = transactions;
@@ -281,9 +278,9 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
                         minStepsBetweenThumbs={1}
                         onValueChange={(v) => setPriceRange(v as number[])}
                         onValueCommit={(v) => {
-                          const [from, to] = v as number[]
-                          setMinPrice(String(from))
-                          setMaxPrice(String(to))
+                          const [from, to] = v as number[];
+                          setMinPrice(String(from));
+                          setMaxPrice(String(to));
                         }}
                         className="w-full"
                         aria-label="Faixa de preço"
@@ -323,7 +320,6 @@ export const TransactionFilters = ({ transactions, onFilteredTransactions }: Tra
           </PopoverContent>
         </Popover>
       </div>
-
     </section>
   );
 };

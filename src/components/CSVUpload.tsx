@@ -7,12 +7,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseTransactionDate } from "@/lib/date";
-import { useTransactions, Transaction } from "@/hooks/use-transactions";
+import { NewTransaction } from "@/types/transaction";
 import UploadConfirmationDialog from "./UploadConfirmationDialog";
 
 interface CSVUploadProps {
   hasData: boolean;
-  insertTransactions: (transactions: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]) => { data: any; error: any };
+  insertTransactions: (transactions: NewTransaction[]) => { data: any; error: any };
   deleteAllTransactions: () => { error: any };
 }
 
@@ -21,12 +21,11 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
   const [isUploading, setIsUploading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [pendingTransactions, setPendingTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
-  const [duplicateTransactions, setDuplicateTransactions] = useState<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[]>([]);
+  const [pendingTransactions, setPendingTransactions] = useState<NewTransaction[]>([]);
   const { toast } = useToast();
 
   const normalizeHeader = (header: string): string => {
-    const headerMap: { [key: string]: string } = {
+    const headerMap: Record<string, string> = {
       "item name": "item",
       "game name": "game", 
       "acted on": "date",
@@ -38,12 +37,12 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
     return headerMap[normalized] || normalized;
   };
 
-  const validateAndConvertData = (data: any[]): Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[] => {
+  const validateAndConvertData = (data: any[]): NewTransaction[] => {
     if (!data || data.length === 0) {
       throw new Error("CSV file is empty");
     }
 
-    const validatedData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>[] = [];
+    const validatedData: NewTransaction[] = [];
 
     data.forEach((row, index) => {
       if (!row.item || !row.game || !row.date || !row.type) {
@@ -125,9 +124,7 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
               throw new Error("No valid transactions found in the CSV file");
             }
 
-            // Set all transactions to be imported
             setPendingTransactions(validatedTransactions);
-            setDuplicateTransactions([]);
             setShowConfirmDialog(true);
 
           } catch (error: any) {
@@ -168,8 +165,6 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
     if (!result.error) {
       setShowConfirmDialog(false);
       setPendingTransactions([]);
-      setDuplicateTransactions([]);
-      // Real-time subscription will handle data updates automatically
     }
   };
 
