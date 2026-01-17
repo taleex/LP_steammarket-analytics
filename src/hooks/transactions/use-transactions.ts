@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Transaction, NewTransaction } from '@/types/transaction';
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Transaction, NewTransaction } from "@/types/transaction";
 
-const STORAGE_KEY = 'steam-market-transactions';
+const STORAGE_KEY = "steam-market-transactions";
 
+/**
+ * Load transactions from localStorage
+ */
 const loadFromStorage = (): Transaction[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -13,10 +16,16 @@ const loadFromStorage = (): Transaction[] => {
   }
 };
 
+/**
+ * Save transactions to localStorage
+ */
 const saveToStorage = (transactions: Transaction[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
 };
 
+/**
+ * Hook for managing transaction data with localStorage persistence
+ */
 export const useTransactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +54,7 @@ export const useTransactions = () => {
     saveToStorage(updated);
 
     toast({
-      title: 'Transactions imported',
+      title: "Transactions imported",
       description: `Imported ${withIds.length} transactions.`,
     });
 
@@ -57,8 +66,8 @@ export const useTransactions = () => {
     saveToStorage([]);
 
     toast({
-      title: 'Success',
-      description: 'All transactions have been deleted.',
+      title: "Success",
+      description: "All transactions have been deleted.",
     });
 
     return { error: null };
@@ -72,5 +81,5 @@ export const useTransactions = () => {
   };
 };
 
-// Re-export Transaction type for convenience
-export type { Transaction } from '@/types/transaction';
+// Re-export types for convenience
+export type { Transaction, NewTransaction } from "@/types/transaction";

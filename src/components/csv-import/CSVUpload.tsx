@@ -3,20 +3,112 @@ import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseTransactionDate } from "@/lib/date";
 import { NewTransaction } from "@/types/transaction";
-import UploadConfirmationDialog from "./UploadConfirmationDialog";
+import { UploadConfirmationDialog } from "./UploadConfirmationDialog";
 
 interface CSVUploadProps {
   hasData: boolean;
-  insertTransactions: (transactions: NewTransaction[]) => { data: any; error: any };
-  deleteAllTransactions: () => { error: any };
+  insertTransactions: (transactions: NewTransaction[]) => { data: unknown; error: unknown };
+  deleteAllTransactions: () => { error: unknown };
 }
 
-export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }: CSVUploadProps) => {
+/**
+ * CSV header normalization map
+ */
+const HEADER_MAP: Record<string, string> = {
+  "item name": "item",
+  "game name": "game",
+  "acted on": "date",
+  "price in cents": "price_cents",
+  "type": "type",
+};
+
+const normalizeHeader = (header: string): string => {
+  const normalized = header.toLowerCase().trim();
+  return HEADER_MAP[normalized] || normalized;
+};
+
+/**
+ * Validates and converts raw CSV data to NewTransaction[]
+ */
+const validateAndConvertData = (data: Record<string, unknown>[]): NewTransaction[] => {
+  if (!data || data.length === 0) {
+    throw new Error("CSV file is empty");
+  }
+
+  const validatedData: NewTransaction[] = [];
+
+  data.forEach((row, index) => {
+    const item = row.item as string | undefined;
+    const game = row.game as string | undefined;
+    const date = row.date as string | undefined;
+    const type = row.type as string | undefined;
+
+    if (!item || !game || !date || !type) {
+      console.warn(`Row ${index + 1} is missing required fields:`, row);
+      return;
+    }
+
+    const parsedDate = parseTransactionDate(date);
+    if (!parsedDate.date) {
+      console.warn(`Row ${index + 1} has invalid date:`, date);
+      return;
+    }
+
+    let priceCents: number;
+    const price = row.price as string | number | undefined;
+    const priceCentsRaw = row.price_cents as string | number | undefined;
+
+    if (typeof price === "string") {
+      const priceStr = price.replace(/[€$,\s]/g, "");
+      priceCents = Math.round(parseFloat(priceStr) * 100);
+    } else if (typeof priceCentsRaw === "string") {
+      priceCents = parseInt(priceCentsRaw);
+    } else {
+      priceCents = Math.round(Number(price || priceCentsRaw || 0));
+    }
+
+    if (isNaN(priceCents)) {
+      console.warn(`Row ${index + 1} has invalid price:`, price || priceCentsRaw);
+      return;
+    }
+
+    const normalizedType = type.toLowerCase();
+    if (normalizedType !== "purchase" && normalizedType !== "sale") {
+      console.warn(`Row ${index + 1} has invalid type:`, type);
+      return;
+    }
+
+    validatedData.push({
+      item: String(item).trim(),
+      game: String(game).trim(),
+      date: parsedDate.date.toISOString(),
+      price_cents: priceCents,
+      type: normalizedType,
+    });
+  });
+
+  return validatedData;
+};
+
+export const CSVUpload = ({
+  hasData,
+  insertTransactions,
+  deleteAllTransactions,
+}: CSVUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -24,79 +116,11 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
   const [pendingTransactions, setPendingTransactions] = useState<NewTransaction[]>([]);
   const { toast } = useToast();
 
-  const normalizeHeader = (header: string): string => {
-    const headerMap: Record<string, string> = {
-      "item name": "item",
-      "game name": "game", 
-      "acted on": "date",
-      "price in cents": "price_cents",
-      "type": "type"
-    };
-    
-    const normalized = header.toLowerCase().trim();
-    return headerMap[normalized] || normalized;
-  };
-
-  const validateAndConvertData = (data: any[]): NewTransaction[] => {
-    if (!data || data.length === 0) {
-      throw new Error("CSV file is empty");
-    }
-
-    const validatedData: NewTransaction[] = [];
-
-    data.forEach((row, index) => {
-      if (!row.item || !row.game || !row.date || !row.type) {
-        console.warn(`Row ${index + 1} is missing required fields:`, row);
-        return;
-      }
-
-      // Parse and validate the date
-      const parsedDate = parseTransactionDate(row.date);
-      if (!parsedDate.date) {
-        console.warn(`Row ${index + 1} has invalid date:`, row.date);
-        return;
-      }
-
-      // Convert price to cents
-      let priceCents: number;
-      if (typeof row.price === 'string') {
-        const priceStr = row.price.replace(/[€$,\s]/g, '');
-        priceCents = Math.round(parseFloat(priceStr) * 100);
-      } else if (typeof row.price_cents === 'string') {
-        priceCents = parseInt(row.price_cents);
-      } else {
-        priceCents = Math.round((row.price || row.price_cents || 0));
-      }
-
-      if (isNaN(priceCents)) {
-        console.warn(`Row ${index + 1} has invalid price:`, row.price || row.price_cents);
-        return;
-      }
-
-      // Validate transaction type
-      const type = row.type?.toLowerCase();
-      if (type !== 'purchase' && type !== 'sale') {
-        console.warn(`Row ${index + 1} has invalid type:`, row.type);
-        return;
-      }
-
-      validatedData.push({
-        item: String(row.item).trim(),
-        game: String(row.game).trim(),
-        date: parsedDate.date.toISOString(),
-        price_cents: priceCents,
-        type: type
-      });
-    });
-
-    return validatedData;
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
       toast({
         title: "Invalid file type",
         description: "Please select a CSV file.",
@@ -117,20 +141,22 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
             if (results.errors.length > 0) {
               console.warn("CSV parsing warnings:", results.errors);
             }
-            
-            const validatedTransactions = validateAndConvertData(results.data);
-            
+
+            const validatedTransactions = validateAndConvertData(
+              results.data as Record<string, unknown>[]
+            );
+
             if (validatedTransactions.length === 0) {
               throw new Error("No valid transactions found in the CSV file");
             }
 
             setPendingTransactions(validatedTransactions);
             setShowConfirmDialog(true);
-
-          } catch (error: any) {
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to process the CSV file";
             toast({
               title: "Error processing CSV",
-              description: error.message || "Failed to process the CSV file",
+              description: message,
               variant: "destructive",
             });
           } finally {
@@ -144,24 +170,24 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
             variant: "destructive",
           });
           setIsUploading(false);
-        }
+        },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Error uploading file",
-        description: error.message || "An unexpected error occurred",
+        description: message,
         variant: "destructive",
       });
       setIsUploading(false);
     }
 
-    // Reset the input
-    event.target.value = '';
+    event.target.value = "";
   };
 
   const handleConfirmImport = async () => {
-    const result = await insertTransactions(pendingTransactions);
-    
+    const result = insertTransactions(pendingTransactions);
+
     if (!result.error) {
       setShowConfirmDialog(false);
       setPendingTransactions([]);
@@ -177,7 +203,7 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
   };
 
   const handleConfirmDelete = async () => {
-    await deleteAllTransactions();
+    deleteAllTransactions();
     setShowDeleteDialog(false);
   };
 
@@ -197,16 +223,17 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <Alert className="border-steam-blue/20 bg-steam-blue/5">
             <AlertDescription className="text-sm">
-              <strong>Expected format:</strong> CSV with columns: "Item Name", "Game Name", "Acted On", "Price in Cents", "Type"
+              <strong>Expected format:</strong> CSV with columns: "Item Name", "Game Name",
+              "Acted On", "Price in Cents", "Type"
             </AlertDescription>
           </Alert>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
+            <Button
               onClick={triggerFileInput}
               disabled={isUploading}
               className="bg-gradient-primary hover:opacity-90 transition-opacity flex-1"
@@ -214,10 +241,10 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
               <Upload className="w-4 h-4 mr-2" />
               {isUploading ? "Processing..." : hasData ? "Import More Data" : "Upload CSV File"}
             </Button>
-            
+
             {hasData && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleClearData}
                 className="flex items-center gap-2"
               >
@@ -248,12 +275,16 @@ export const CSVUpload = ({ hasData, insertTransactions, deleteAllTransactions }
               <AlertDialogHeader>
                 <AlertDialogTitle>Clear All Data</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete all your transactions? This action cannot be undone.
+                  Are you sure you want to delete all your transactions? This action cannot be
+                  undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogAction
+                  onClick={handleConfirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
                   Delete All
                 </AlertDialogAction>
               </AlertDialogFooter>

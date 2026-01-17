@@ -11,9 +11,7 @@ export const EmptyState = () => {
             <Database className="h-8 w-8 text-muted-foreground" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-foreground">
-              No data loaded
-            </h3>
+            <h3 className="text-xl font-semibold text-foreground">No data loaded</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               Import a CSV file to start analyzing your Steam Market transactions
             </p>
