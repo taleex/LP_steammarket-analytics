@@ -1,6 +1,8 @@
 interface ParsedDate {
   date: Date | null;
   hasTime: boolean;
+  needsYearInference?: boolean;
+  monthDay?: { month: number; day: number };
 }
 
 // Portuguese month names for parsing
@@ -130,7 +132,6 @@ function parseNamedMonthDate(dateString: string): ParsedDate {
   let day: number | null = null;
   let month: number | null = null;
   let year: number | null = null;
-  let hasTime = false;
 
   // Look for month name in parts
   for (const part of parts) {
@@ -157,20 +158,22 @@ function parseNamedMonthDate(dateString: string): ParsedDate {
     }
   }
 
-  // If no year provided, assume current year, but adjust if date would be in future
+  if (day === null) {
+    day = 1; // Default to first day of month if not specified
+  }
+
+  // If no year provided, flag for sequential inference
   if (year === null) {
-    const currentYear = new Date().getFullYear();
-    const testDate = new Date(currentYear, month, day || 1);
-    const now = new Date();
-    
-    // If date would be more than 1 day in the future, use previous year
-    if (testDate.getTime() > now.getTime() + 24 * 60 * 60 * 1000) {
-      year = currentYear - 1;
-    } else {
-      year = currentYear;
-    }
-  } else if (year < 100) {
-    // Handle 2-digit years
+    return {
+      date: null,
+      hasTime: false,
+      needsYearInference: true,
+      monthDay: { month, day }
+    };
+  }
+
+  // Handle 2-digit years
+  if (year < 100) {
     if (year <= 30) {
       year += 2000;
     } else {
@@ -178,16 +181,57 @@ function parseNamedMonthDate(dateString: string): ParsedDate {
     }
   }
 
-  if (day === null) {
-    day = 1; // Default to first day of month if not specified
-  }
-
   const date = new Date(year, month, day);
   
   return { 
     date: isNaN(date.getTime()) ? null : date, 
-    hasTime 
+    hasTime: false 
   };
+}
+
+/**
+ * Assigns years to dates based on sequential ordering (recent to older).
+ * Assumes data is ordered from most recent to oldest.
+ */
+export function inferYearsForDates(
+  parsedDates: ParsedDate[]
+): Date[] {
+  const results: Date[] = [];
+  const now = new Date();
+  let currentYear = now.getFullYear();
+  let lastMonth: number | null = null;
+
+  for (const parsed of parsedDates) {
+    if (parsed.date) {
+      // Already has a complete date
+      results.push(parsed.date);
+      lastMonth = parsed.date.getMonth();
+      currentYear = parsed.date.getFullYear();
+    } else if (parsed.needsYearInference && parsed.monthDay) {
+      const { month, day } = parsed.monthDay;
+      
+      // If month is greater than last month, we've gone back a year
+      // (since data is ordered recent to older)
+      if (lastMonth !== null && month > lastMonth) {
+        currentYear--;
+      }
+      
+      // Don't allow future dates
+      const testDate = new Date(currentYear, month, day);
+      if (testDate > now) {
+        currentYear--;
+      }
+      
+      const date = new Date(currentYear, month, day);
+      results.push(date);
+      lastMonth = month;
+    } else {
+      // Invalid date, push current date as fallback
+      results.push(new Date());
+    }
+  }
+
+  return results;
 }
 
 export function formatForPT(date: Date, hasTime: boolean): string {

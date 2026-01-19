@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { parseTransactionDate } from "@/lib/date";
+import { parseTransactionDate, inferYearsForDates } from "@/lib/date";
 import { NewTransaction } from "@/types/transaction";
 import { UploadConfirmationDialog } from "./UploadConfirmationDialog";
 
@@ -49,7 +49,12 @@ const validateAndConvertData = (data: Record<string, unknown>[]): NewTransaction
     throw new Error("CSV file is empty");
   }
 
-  const validatedData: NewTransaction[] = [];
+  // First pass: parse all dates and collect valid rows
+  const rowsWithParsedDates: {
+    row: Record<string, unknown>;
+    index: number;
+    parsedDate: ReturnType<typeof parseTransactionDate>;
+  }[] = [];
 
   data.forEach((row, index) => {
     const item = row.item as string | undefined;
@@ -63,17 +68,34 @@ const validateAndConvertData = (data: Record<string, unknown>[]): NewTransaction
     }
 
     const parsedDate = parseTransactionDate(date);
-    if (!parsedDate.date) {
+    if (!parsedDate.date && !parsedDate.needsYearInference) {
       console.warn(`Row ${index + 1} has invalid date:`, date);
       return;
     }
+
+    rowsWithParsedDates.push({ row, index, parsedDate });
+  });
+
+  // Second pass: infer years for dates without years (using sequential order)
+  const parsedDates = rowsWithParsedDates.map((r) => r.parsedDate);
+  const inferredDates = inferYearsForDates(parsedDates);
+
+  // Third pass: build validated transactions
+  const validatedData: NewTransaction[] = [];
+
+  rowsWithParsedDates.forEach(({ row, index }, arrayIndex) => {
+    const item = row.item as string;
+    const game = row.game as string;
+    const type = row.type as string;
+    const inferredDate = inferredDates[arrayIndex];
 
     let priceCents: number;
     const price = row.price as string | number | undefined;
     const priceCentsRaw = row.price_cents as string | number | undefined;
 
     if (typeof price === "string") {
-      const priceStr = price.replace(/[€$,\s]/g, "");
+      // Handle European format with comma as decimal separator
+      const priceStr = price.replace(/[€$\s]/g, "").replace(",", ".");
       priceCents = Math.round(parseFloat(priceStr) * 100);
     } else if (typeof priceCentsRaw === "string") {
       priceCents = parseInt(priceCentsRaw);
@@ -95,7 +117,7 @@ const validateAndConvertData = (data: Record<string, unknown>[]): NewTransaction
     validatedData.push({
       item: String(item).trim(),
       game: String(game).trim(),
-      date: parsedDate.date.toISOString(),
+      date: inferredDate.toISOString(),
       price_cents: priceCents,
       type: normalizedType,
     });
