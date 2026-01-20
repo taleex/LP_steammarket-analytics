@@ -11,13 +11,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
+import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { Slider } from "@/components/ui/slider";
 import { useDebounce } from "@/hooks/use-debounce";
 import { parseTransactionDate } from "@/lib/date";
 import { Transaction } from "@/types/transaction";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 interface TransactionFiltersProps {
   transactions: Transaction[];
@@ -51,6 +60,7 @@ export const TransactionFilters = ({
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
   const [filteredCount, setFilteredCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [gameSearchOpen, setGameSearchOpen] = useState(false);
 
   // Debounced inputs
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 250);
@@ -202,33 +212,66 @@ export const TransactionFilters = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Game</Label>
-                      <Select
-                        value={filters.selectedGame}
-                        onValueChange={(v) => updateFilter("selectedGame", v)}
-                      >
-                        <SelectTrigger className="h-10 border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors">
-                          <SelectValue placeholder="All games" />
-                        </SelectTrigger>
-                        <SelectContent
-                          className="max-h-[200px] border-border/50 shadow-lg overflow-y-auto"
-                          style={{ width: "var(--radix-select-trigger-width)" }}
-                          position="popper"
-                          sideOffset={4}
-                        >
-                          <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">
-                            All games
-                          </SelectItem>
-                          {uniqueGames.map((game) => (
-                            <SelectItem
-                              key={game}
-                              value={game}
-                              className="focus:bg-accent/80 cursor-pointer"
-                            >
-                              {game}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={gameSearchOpen} onOpenChange={setGameSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={gameSearchOpen}
+                            className="h-10 w-full justify-between border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors font-normal"
+                          >
+                            <span className="truncate">
+                              {filters.selectedGame === "all"
+                                ? "All games"
+                                : filters.selectedGame}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search games..." />
+                            <CommandList>
+                              <CommandEmpty>No game found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  value="all"
+                                  onSelect={() => {
+                                    updateFilter("selectedGame", "all");
+                                    setGameSearchOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      filters.selectedGame === "all" ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  All games
+                                </CommandItem>
+                                {uniqueGames.map((game) => (
+                                  <CommandItem
+                                    key={game}
+                                    value={game}
+                                    onSelect={() => {
+                                      updateFilter("selectedGame", game);
+                                      setGameSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        filters.selectedGame === game ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {game}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     <div className="space-y-2">
@@ -336,6 +379,7 @@ export const TransactionFilters = ({
                         max={maxBound}
                         step={1}
                         minStepsBetweenThumbs={1}
+                        thumbCount={2}
                         onValueChange={(v) => setPriceRange(v as number[])}
                         onValueCommit={(v) => {
                           const [from, to] = v as number[];
