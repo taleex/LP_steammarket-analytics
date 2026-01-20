@@ -118,3 +118,12 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide react-day-picker redundant dropdown labels */
+.rdp-vhidden {
+  display: none !important;
+}
+
+.rdp-caption_dropdowns label {
+  display: none !important;
+}
