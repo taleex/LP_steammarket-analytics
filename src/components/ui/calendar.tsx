@@ -20,15 +20,15 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-3",
-        caption: "flex justify-between items-center px-1 pb-2",
+        caption: "flex justify-center items-center gap-2 px-1 pb-2 relative",
         caption_label: "hidden",
-        nav: "flex items-center gap-1",
+        nav: "flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_previous: "",
-        nav_button_next: "",
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
@@ -49,11 +49,17 @@ function Calendar({
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
-        caption_dropdowns: "flex items-center gap-1",
-        dropdown_month: "h-7 cursor-pointer appearance-none rounded-md border border-input bg-background px-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring",
-        dropdown_year: "h-7 cursor-pointer appearance-none rounded-md border border-input bg-background px-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring",
-        dropdown: "absolute left-0 top-full mt-1 max-h-[120px] min-w-full overflow-y-auto rounded-md border border-input bg-popover shadow-lg z-[100]",
+        caption_dropdowns: "flex items-center gap-1 [&>span]:hidden",
+        dropdown_month: "relative inline-flex",
+        dropdown_year: "relative inline-flex",
+        dropdown: "absolute max-h-[150px] overflow-y-auto rounded-md border border-input bg-popover p-1 shadow-lg z-[100]",
         ...classNames,
+      }}
+      modifiersStyles={{
+        selected: {
+          backgroundColor: "hsl(var(--primary))",
+          color: "hsl(var(--primary-foreground))",
+        },
       }}
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,

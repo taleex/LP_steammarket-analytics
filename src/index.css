@@ -119,11 +119,38 @@ All colors MUST be HSL.
   }
 }
 
-/* Hide react-day-picker redundant dropdown labels */
+/* React Day Picker dropdown styles */
 .rdp-vhidden {
   display: none !important;
 }
 
-.rdp-caption_dropdowns label {
+.rdp-caption_dropdowns > span {
   display: none !important;
+}
+
+.rdp-caption_dropdowns select {
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.rdp-caption_dropdowns select:hover {
+  background-color: hsl(var(--accent));
+}
+
+.rdp-caption_dropdowns select:focus {
+  outline: none;
+  ring: 1px solid hsl(var(--ring));
+}
+
+.rdp-caption_dropdowns select option {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
 }
