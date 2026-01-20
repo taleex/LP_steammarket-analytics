@@ -3,6 +3,7 @@ import { PageHeader, LoadingSkeleton } from "@/components/layout";
 import { CSVUpload } from "@/components/csv-import";
 import { TransactionTable, TransactionFilters } from "@/components/transactions";
 import { useTransactions, Transaction } from "@/hooks";
+import Footer from "@/components/layout/Footer";
 
 const Index = () => {
   const { transactions, loading, insertTransactions, deleteAllTransactions } = useTransactions();
@@ -41,6 +42,7 @@ const Index = () => {
 
           <TransactionTable transactions={filteredTransactions} />
         </div>
+        <Footer />
       </div>
     </div>
   );
