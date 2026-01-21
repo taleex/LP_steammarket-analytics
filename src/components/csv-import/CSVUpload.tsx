@@ -1,5 +1,4 @@
-import React, { useRef, useState } from "react";
-import Papa from "papaparse";
+import React, { useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Upload, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { parseTransactionDate, inferYearsForDates } from "@/lib/date";
+import { parseCSVFile, validateAndConvertData } from "@/lib/csv";
 import { NewTransaction } from "@/types/transaction";
 import { UploadConfirmationDialog } from "./UploadConfirmationDialog";
 
@@ -24,107 +23,6 @@ interface CSVUploadProps {
   insertTransactions: (transactions: NewTransaction[]) => { data: unknown; error: unknown };
   deleteAllTransactions: () => { error: unknown };
 }
-
-/**
- * CSV header normalization map
- */
-const HEADER_MAP: Record<string, string> = {
-  "item name": "item",
-  "game name": "game",
-  "acted on": "date",
-  "price in cents": "price_cents",
-  "type": "type",
-};
-
-const normalizeHeader = (header: string): string => {
-  const normalized = header.toLowerCase().trim();
-  return HEADER_MAP[normalized] || normalized;
-};
-
-/**
- * Validates and converts raw CSV data to NewTransaction[]
- */
-const validateAndConvertData = (data: Record<string, unknown>[]): NewTransaction[] => {
-  if (!data || data.length === 0) {
-    throw new Error("CSV file is empty");
-  }
-
-  // First pass: parse all dates and collect valid rows
-  const rowsWithParsedDates: {
-    row: Record<string, unknown>;
-    index: number;
-    parsedDate: ReturnType<typeof parseTransactionDate>;
-  }[] = [];
-
-  data.forEach((row, index) => {
-    const item = row.item as string | undefined;
-    const game = row.game as string | undefined;
-    const date = row.date as string | undefined;
-    const type = row.type as string | undefined;
-
-    if (!item || !game || !date || !type) {
-      console.warn(`Row ${index + 1} is missing required fields:`, row);
-      return;
-    }
-
-    const parsedDate = parseTransactionDate(date);
-    if (!parsedDate.date && !parsedDate.needsYearInference) {
-      console.warn(`Row ${index + 1} has invalid date:`, date);
-      return;
-    }
-
-    rowsWithParsedDates.push({ row, index, parsedDate });
-  });
-
-  // Second pass: infer years for dates without years (using sequential order)
-  const parsedDates = rowsWithParsedDates.map((r) => r.parsedDate);
-  const inferredDates = inferYearsForDates(parsedDates);
-
-  // Third pass: build validated transactions
-  const validatedData: NewTransaction[] = [];
-
-  rowsWithParsedDates.forEach(({ row, index }, arrayIndex) => {
-    const item = row.item as string;
-    const game = row.game as string;
-    const type = row.type as string;
-    const inferredDate = inferredDates[arrayIndex];
-
-    let priceCents: number;
-    const price = row.price as string | number | undefined;
-    const priceCentsRaw = row.price_cents as string | number | undefined;
-
-    if (typeof price === "string") {
-      // Handle European format with comma as decimal separator
-      const priceStr = price.replace(/[€$\s]/g, "").replace(",", ".");
-      priceCents = Math.round(parseFloat(priceStr) * 100);
-    } else if (typeof priceCentsRaw === "string") {
-      priceCents = parseInt(priceCentsRaw);
-    } else {
-      priceCents = Math.round(Number(price || priceCentsRaw || 0));
-    }
-
-    if (isNaN(priceCents)) {
-      console.warn(`Row ${index + 1} has invalid price:`, price || priceCentsRaw);
-      return;
-    }
-
-    const normalizedType = type.toLowerCase();
-    if (normalizedType !== "purchase" && normalizedType !== "sale") {
-      console.warn(`Row ${index + 1} has invalid type:`, type);
-      return;
-    }
-
-    validatedData.push({
-      item: String(item).trim(),
-      game: String(game).trim(),
-      date: inferredDate.toISOString(),
-      price_cents: priceCents,
-      type: normalizedType,
-    });
-  });
-
-  return validatedData;
-};
 
 export const CSVUpload = ({
   hasData,
@@ -138,96 +36,75 @@ export const CSVUpload = ({
   const [pendingTransactions, setPendingTransactions] = useState<NewTransaction[]>([]);
   const { toast } = useToast();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select a CSV file.",
-        variant: "destructive",
-      });
-      return;
-    }
+      // Validate file type
+      if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a CSV file.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    setIsUploading(true);
+      setIsUploading(true);
 
-    try {
-      Papa.parse(file, {
-        header: true,
-        transformHeader: normalizeHeader,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          try {
-            if (results.errors.length > 0) {
-              console.warn("CSV parsing warnings:", results.errors);
-            }
+      try {
+        const { data, errors } = await parseCSVFile(file);
 
-            const validatedTransactions = validateAndConvertData(
-              results.data as Record<string, unknown>[]
-            );
+        if (errors.length > 0) {
+          console.warn("CSV parsing warnings:", errors);
+        }
 
-            if (validatedTransactions.length === 0) {
-              throw new Error("No valid transactions found in the CSV file");
-            }
+        const validatedTransactions = validateAndConvertData(data);
 
-            setPendingTransactions(validatedTransactions);
-            setShowConfirmDialog(true);
-          } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Failed to process the CSV file";
-            toast({
-              title: "Error processing CSV",
-              description: message,
-              variant: "destructive",
-            });
-          } finally {
-            setIsUploading(false);
-          }
-        },
-        error: (error) => {
-          toast({
-            title: "Error reading CSV",
-            description: error.message || "Failed to read the CSV file",
-            variant: "destructive",
-          });
-          setIsUploading(false);
-        },
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "An unexpected error occurred";
-      toast({
-        title: "Error uploading file",
-        description: message,
-        variant: "destructive",
-      });
-      setIsUploading(false);
-    }
+        if (validatedTransactions.length === 0) {
+          throw new Error("No valid transactions found in the CSV file");
+        }
 
-    event.target.value = "";
-  };
+        setPendingTransactions(validatedTransactions);
+        setShowConfirmDialog(true);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Failed to process the CSV file";
+        toast({
+          title: "Error processing CSV",
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+        // Reset file input
+        event.target.value = "";
+      }
+    },
+    [toast]
+  );
 
-  const handleConfirmImport = async () => {
+  const handleConfirmImport = useCallback(() => {
     const result = insertTransactions(pendingTransactions);
 
     if (!result.error) {
       setShowConfirmDialog(false);
       setPendingTransactions([]);
     }
-  };
+  }, [insertTransactions, pendingTransactions]);
 
-  const triggerFileInput = () => {
+  const triggerFileInput = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleClearData = () => {
+  const handleClearData = useCallback(() => {
     setShowDeleteDialog(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(() => {
     deleteAllTransactions();
     setShowDeleteDialog(false);
-  };
+  }, [deleteAllTransactions]);
 
   return (
     <div className="space-y-6 animate-fade-in">

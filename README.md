@@ -19,7 +19,7 @@ A React-based web application for importing, viewing, and analyzing Steam Market
 
 - **CSV Import** – Upload Steam Market transaction history from CSV files
 - **Transaction Table** – View all transactions with sorting and multi-select capabilities
-- **Filtering** – Filter transactions by type, game, date range, and search terms
+- **Filtering** – Filter transactions by type, game, date range, price range, and search terms
 - **Summary Cards** – Real-time calculation of gains, spending, and net profit
 - **Multi-Selection** – Select multiple rows with shift-click range selection
 - **Local Persistence** – Data is saved to localStorage for session persistence
@@ -46,56 +46,69 @@ A React-based web application for importing, viewing, and analyzing Steam Market
 ```
 src/
 ├── components/
-│   ├── csv-import/              # CSV upload functionality
-│   │   ├── CSVUpload.tsx        # Main upload component with drag-drop
+│   ├── csv-import/                    # CSV upload functionality
+│   │   ├── CSVUpload.tsx              # Main upload component
 │   │   ├── UploadConfirmationDialog.tsx
-│   │   └── index.ts             # Barrel export
+│   │   └── index.ts                   # Barrel export
 │   │
-│   ├── layout/                  # Layout components
-│   │   ├── PageHeader.tsx       # App header with title and stats
-│   │   ├── LoadingSkeleton.tsx  # Loading state placeholder
+│   ├── layout/                        # Layout components
+│   │   ├── PageHeader.tsx             # App header with title and stats
+│   │   ├── Footer.tsx                 # Footer with copyright
+│   │   ├── LoadingSkeleton.tsx        # Loading state placeholder
 │   │   └── index.ts
 │   │
-│   ├── transactions/            # Transaction display components
-│   │   ├── table/               # Table sub-components
-│   │   │   ├── TransactionTable.tsx      # Main table container
+│   ├── transactions/                  # Transaction display components
+│   │   ├── table/                     # Table sub-components
+│   │   │   ├── TransactionTable.tsx   # Main table container
 │   │   │   ├── TransactionTableHeader.tsx
-│   │   │   ├── TransactionRow.tsx        # Individual row component
+│   │   │   ├── TransactionRow.tsx     # Individual row (memoized)
 │   │   │   └── index.ts
 │   │   │
-│   │   ├── EmptyState.tsx       # No data placeholder
-│   │   ├── SummaryCards.tsx     # Gains/Spent/Net summary
-│   │   ├── TransactionFilters.tsx
+│   │   ├── EmptyState.tsx             # No data placeholder
+│   │   ├── SummaryCards.tsx           # Gains/Spent/Net summary
+│   │   ├── TransactionFilters.tsx     # Filter controls
 │   │   └── index.ts
 │   │
-│   └── ui/                      # shadcn/ui components (auto-generated)
+│   └── ui/                            # shadcn/ui components
 │
 ├── hooks/
 │   ├── transactions/
-│   │   ├── use-transactions.ts  # Transaction CRUD operations
-│   │   ├── use-table-selection.ts # Multi-select with shift-click
+│   │   ├── use-transactions.ts        # Transaction CRUD operations
+│   │   ├── use-table-selection.ts     # Multi-select with shift-click
+│   │   ├── use-transaction-filters.ts # Filter state and logic
+│   │   ├── use-transaction-totals.ts  # Calculate selected totals
 │   │   └── index.ts
 │   │
-│   ├── use-debounce.ts          # Debounce utility hook
-│   ├── use-mobile.tsx           # Mobile detection hook
-│   ├── use-toast.ts             # Toast notifications
-│   └── index.ts                 # Central hook exports
+│   ├── use-debounce.ts                # Debounce utility hook
+│   ├── use-mobile.tsx                 # Mobile detection hook
+│   ├── use-toast.ts                   # Toast notifications
+│   └── index.ts                       # Central hook exports
 │
 ├── lib/
-│   ├── date.ts                  # Date parsing utilities (PT/EN formats)
-│   ├── format.ts                # Price formatting utilities
-│   └── utils.ts                 # General utilities (cn, etc.)
+│   ├── csv/                           # CSV processing utilities
+│   │   ├── parser.ts                  # CSV parsing with PapaParse
+│   │   ├── validator.ts               # Data validation and conversion
+│   │   └── index.ts
+│   │
+│   ├── constants.ts                   # Application constants
+│   ├── date.ts                        # Date parsing (PT/EN formats)
+│   ├── format.ts                      # Price formatting utilities
+│   ├── storage.ts                     # localStorage utilities
+│   ├── utils.ts                       # General utilities (cn, etc.)
+│   └── index.ts                       # Central lib exports
 │
 ├── types/
-│   └── transaction.ts           # TypeScript interfaces
+│   ├── transaction.ts                 # Transaction interfaces
+│   ├── filters.ts                     # Filter state interface
+│   └── index.ts                       # Central type exports
 │
 ├── pages/
-│   ├── Index.tsx                # Main application page
-│   └── NotFound.tsx             # 404 page
+│   ├── Index.tsx                      # Main application page
+│   └── NotFound.tsx                   # 404 page
 │
-├── App.tsx                      # Router configuration
-├── main.tsx                     # Application entry point
-└── index.css                    # Global styles and Tailwind config
+├── App.tsx                            # Router configuration
+├── main.tsx                           # Application entry point
+└── index.css                          # Global styles and design tokens
 ```
 
 ---
@@ -136,17 +149,19 @@ npm run preview
 
 ### Importing Transactions
 
-1. Click the upload area or drag-and-drop a CSV file
-2. The CSV should contain columns for: item name, game, date, price, and transaction type
-3. Confirm the import in the dialog
+1. Click the upload button or drag-and-drop a CSV file
+2. The CSV should contain columns: Item Name, Game Name, Acted On, Price in Cents, Type
+3. Review and confirm the import in the preview dialog
 4. Transactions are automatically saved to localStorage
 
 ### Filtering Data
 
 - Use the search bar to filter by item name
-- Select a specific game from the dropdown
-- Choose transaction type (sale/purchase)
-- Set date range filters
+- Click "Filters" to access advanced options:
+  - Select a specific game (searchable dropdown)
+  - Choose transaction type (sale/purchase)
+  - Set date range with calendar pickers
+  - Adjust price range with slider
 
 ### Selecting Transactions
 
@@ -163,51 +178,80 @@ npm run preview
 
 Components are organized by **feature**, not by type:
 
-- `csv-import/` – Everything related to CSV uploading
-- `transactions/` – Everything related to displaying transactions
-- `layout/` – Shared layout components
+- `csv-import/` – CSV uploading and validation
+- `transactions/` – Transaction display, filtering, and selection
+- `layout/` – Shared layout components (header, footer, loading states)
 
 Each feature folder contains an `index.ts` barrel file for clean imports:
 
 ```typescript
-// Clean import
+// Clean imports via barrel exports
 import { CSVUpload } from "@/components/csv-import";
-
-// Instead of
-import { CSVUpload } from "@/components/csv-import/CSVUpload";
+import { TransactionTable, TransactionFilters } from "@/components/transactions";
 ```
 
 ### Custom Hooks
 
-Business logic is extracted into custom hooks:
+Business logic is extracted into focused, single-responsibility hooks:
 
-- **`useTransactions`** – Manages transaction state, localStorage sync, and CRUD operations
-- **`useTableSelection`** – Handles multi-select logic with shift-click support
+| Hook                     | Purpose                                      |
+|--------------------------|----------------------------------------------|
+| `useTransactions`        | Transaction state, CRUD, localStorage sync   |
+| `useTableSelection`      | Multi-select with shift-click support        |
+| `useTransactionFilters`  | Filter state and filtering logic             |
+| `useTransactionTotals`   | Calculate gains/spent/net for selection      |
+
+### Utility Modules
+
+Shared utilities are centralized in `src/lib/`:
+
+| Module         | Purpose                                    |
+|----------------|---------------------------------------------|
+| `csv/`         | CSV parsing and data validation             |
+| `constants.ts` | Application-wide constants                  |
+| `date.ts`      | Multi-format date parsing (PT/EN formats)   |
+| `format.ts`    | Price formatting with currency symbols      |
+| `storage.ts`   | localStorage wrapper functions              |
+| `utils.ts`     | Tailwind class merging (cn helper)          |
 
 ### Type Safety
 
-All transaction data flows through typed interfaces in `src/types/transaction.ts`:
+All data flows through typed interfaces in `src/types/`:
 
 ```typescript
+// Transaction types
 interface Transaction {
   id: string;
   item: string;
   game: string;
   date: string;
   price_cents: number;
-  type: 'sale' | 'purchase';
+  type: TransactionType;
   created_at: string;
   updated_at: string;
 }
+
+// Filter state type
+interface FilterState {
+  searchTerm: string;
+  selectedGame: string;
+  selectedType: string;
+  minPrice: string;
+  maxPrice: string;
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+}
 ```
 
-### Utility Functions
+### Design System
 
-Shared utilities are centralized in `src/lib/`:
+The app uses a semantic token-based design system defined in `src/index.css`:
 
-- **`format.ts`** – Price formatting with currency symbols
-- **`date.ts`** – Multi-format date parsing (supports PT and EN formats)
-- **`utils.ts`** – Tailwind class merging and general utilities
+- **Colors**: Defined as HSL CSS variables (`--primary`, `--profit`, `--loss`, etc.)
+- **Gradients**: Pre-defined gradient tokens (`--gradient-primary`, `--gradient-hero`)
+- **Animations**: Custom keyframes for fade, slide, and glow effects
+
+All components use Tailwind classes that reference these tokens, ensuring consistent theming.
 
 ---
 

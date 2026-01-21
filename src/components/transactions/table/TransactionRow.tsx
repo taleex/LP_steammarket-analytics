@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/format";
@@ -14,6 +15,9 @@ interface TransactionRowProps {
   onRowClick: (index: number, id: string, e: React.MouseEvent) => void;
 }
 
+/**
+ * Formats a date string for display
+ */
 const formatDate = (dateString: string): string => {
   const parsed = parseTransactionDate(dateString);
   if (!parsed.date) {
@@ -23,7 +27,11 @@ const formatDate = (dateString: string): string => {
   return formatForPT(parsed.date, parsed.hasTime);
 };
 
-export const TransactionRow = ({
+/**
+ * A single row in the transaction table
+ * Memoized for performance with large datasets
+ */
+export const TransactionRow = memo(function TransactionRow({
   transaction,
   index,
   isSelected,
@@ -31,7 +39,7 @@ export const TransactionRow = ({
   hasLastClickedIndex,
   onSelect,
   onRowClick,
-}: TransactionRowProps) => {
+}: TransactionRowProps) {
   const isSale = transaction.type === "sale";
 
   return (
@@ -86,4 +94,4 @@ export const TransactionRow = ({
       </td>
     </tr>
   );
-};
+});

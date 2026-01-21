@@ -1,6 +1,5 @@
 // Table components
-export { TransactionTable } from "./table";
-export { TransactionRow } from "./table";
+export { TransactionTable, TransactionRow, TransactionTableHeader, TableColumnsHeader } from "./table";
 
 // Filter components
 export { TransactionFilters } from "./TransactionFilters";

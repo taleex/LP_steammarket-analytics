@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { X, CheckSquare, Square } from "lucide-react";
@@ -11,14 +12,17 @@ interface TransactionTableHeaderProps {
   onClearSelection: () => void;
 }
 
-export const TransactionTableHeader = ({
+/**
+ * Header section for the transaction table with selection controls
+ */
+export const TransactionTableHeader = memo(function TransactionTableHeader({
   isAllSelected,
   isPartiallySelected,
   isShiftHeld,
   selectedCount,
   onSelectAll,
   onClearSelection,
-}: TransactionTableHeaderProps) => {
+}: TransactionTableHeaderProps) {
   return (
     <div className="p-6 border-b border-border/50 bg-muted/5">
       <div className="flex items-center justify-between">
@@ -61,7 +65,7 @@ export const TransactionTableHeader = ({
       </div>
     </div>
   );
-};
+});
 
 interface TableColumnsHeaderProps {
   isAllSelected: boolean;
@@ -69,11 +73,14 @@ interface TableColumnsHeaderProps {
   onSelectAll: () => void;
 }
 
-export const TableColumnsHeader = ({
+/**
+ * Column headers for the transaction table
+ */
+export const TableColumnsHeader = memo(function TableColumnsHeader({
   isAllSelected,
   isPartiallySelected,
   onSelectAll,
-}: TableColumnsHeaderProps) => {
+}: TableColumnsHeaderProps) {
   return (
     <thead>
       <tr className="border-b border-border/50 bg-muted/10">
@@ -101,4 +108,4 @@ export const TableColumnsHeader = ({
       </tr>
     </thead>
   );
-};
+});
