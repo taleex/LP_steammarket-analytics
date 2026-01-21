@@ -1,4 +1,9 @@
 /**
+ * Transaction type values
+ */
+export type TransactionType = "sale" | "purchase";
+
+/**
  * Core transaction type for Steam Market data
  */
 export interface Transaction {
@@ -7,7 +12,7 @@ export interface Transaction {
   game: string;
   date: string;
   price_cents: number;
-  type: 'sale' | 'purchase' | string;
+  type: TransactionType | string;
   created_at: string;
   updated_at: string;
 }
@@ -15,7 +20,7 @@ export interface Transaction {
 /**
  * Transaction without system-generated fields (for creating new transactions)
  */
-export type NewTransaction = Omit<Transaction, 'id' | 'created_at' | 'updated_at'>;
+export type NewTransaction = Omit<Transaction, "id" | "created_at" | "updated_at">;
 
 /**
  * Summary totals for selected transactions

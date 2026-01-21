@@ -1,5 +1,12 @@
-// Re-export all hooks for convenience
-export { useTransactions, useTableSelection } from "./transactions";
+// Transaction hooks
+export {
+  useTransactions,
+  useTableSelection,
+  useTransactionFilters,
+  useTransactionTotals,
+} from "./transactions";
+
+// Utility hooks
 export { useDebounce } from "./use-debounce";
 export { useIsMobile } from "./use-mobile";
 export { useToast, toast } from "./use-toast";

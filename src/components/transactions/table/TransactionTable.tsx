@@ -1,7 +1,6 @@
-import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Transaction, TransactionTotals } from "@/types/transaction";
-import { useTableSelection } from "@/hooks/transactions/use-table-selection";
+import { Transaction } from "@/types/transaction";
+import { useTableSelection, useTransactionTotals } from "@/hooks/transactions";
 import { SummaryCards } from "../SummaryCards";
 import { EmptyState } from "../EmptyState";
 import { TransactionRow } from "./TransactionRow";
@@ -10,34 +9,6 @@ import { TransactionTableHeader, TableColumnsHeader } from "./TransactionTableHe
 interface TransactionTableProps {
   transactions: Transaction[];
 }
-
-/**
- * Calculates totals for selected transactions
- */
-const calculateTotals = (
-  selectedItems: Set<string>,
-  transactions: Transaction[]
-): TransactionTotals => {
-  let totalGains = 0;
-  let totalSpent = 0;
-
-  selectedItems.forEach((id) => {
-    const transaction = transactions.find((t) => t.id === id);
-    if (transaction) {
-      if (transaction.type === "sale") {
-        totalGains += transaction.price_cents;
-      } else {
-        totalSpent += transaction.price_cents;
-      }
-    }
-  });
-
-  return {
-    gains: totalGains,
-    spent: totalSpent,
-    net: totalGains - totalSpent,
-  };
-};
 
 export const TransactionTable = ({ transactions = [] }: TransactionTableProps) => {
   const {
@@ -52,10 +23,7 @@ export const TransactionTable = ({ transactions = [] }: TransactionTableProps) =
     handleRowClick,
   } = useTableSelection(transactions);
 
-  const totals = useMemo(
-    () => calculateTotals(selectedItems, transactions),
-    [selectedItems, transactions]
-  );
+  const totals = useTransactionTotals(selectedItems, transactions);
 
   if (transactions.length === 0) {
     return <EmptyState />;

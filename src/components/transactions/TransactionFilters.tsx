@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,11 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format } from "date-fns";
 import { Slider } from "@/components/ui/slider";
-import { useDebounce } from "@/hooks/use-debounce";
-import { parseTransactionDate } from "@/lib/date";
 import { Transaction } from "@/types/transaction";
+import { useTransactionFilters } from "@/hooks/transactions/use-transaction-filters";
 import {
   Command,
   CommandEmpty,
@@ -33,144 +32,36 @@ interface TransactionFiltersProps {
   onFilteredTransactions: (filtered: Transaction[]) => void;
 }
 
-interface FilterState {
-  searchTerm: string;
-  selectedGame: string;
-  selectedType: string;
-  minPrice: string;
-  maxPrice: string;
-  startDate: Date | undefined;
-  endDate: Date | undefined;
-}
-
-const INITIAL_FILTER_STATE: FilterState = {
-  searchTerm: "",
-  selectedGame: "all",
-  selectedType: "all",
-  minPrice: "",
-  maxPrice: "",
-  startDate: undefined,
-  endDate: undefined,
-};
-
 export const TransactionFilters = ({
   transactions,
   onFilteredTransactions,
 }: TransactionFiltersProps) => {
-  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
-  const [filteredCount, setFilteredCount] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [gameSearchOpen, setGameSearchOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isGameSearchOpen, setIsGameSearchOpen] = useState(false);
 
-  // Debounced inputs
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 250);
-  const debouncedMinPrice = useDebounce(filters.minPrice, 250);
-  const debouncedMaxPrice = useDebounce(filters.maxPrice, 250);
+  const {
+    filters,
+    filteredCount,
+    uniqueGames,
+    priceRange,
+    minBound,
+    maxBound,
+    hasActiveFilters,
+    updateFilter,
+    updatePriceRange,
+    clearFilters,
+  } = useTransactionFilters({ transactions, onFilteredTransactions });
 
-  // Derived data
-  const uniqueGames = useMemo(
-    () => Array.from(new Set(transactions.map((t) => t.game))).sort(),
-    [transactions]
-  );
-
-  const { minBound, maxBound } = useMemo(() => {
-    const pricesEuros = transactions.map((t) => t.price_cents / 100);
-    let min = pricesEuros.length ? Math.floor(Math.min(...pricesEuros)) : 0;
-    let max = pricesEuros.length ? Math.ceil(Math.max(...pricesEuros)) : 1000;
-    if (max <= min) max = min + 1;
-    return { minBound: min, maxBound: max };
-  }, [transactions]);
-
-  const [priceRange, setPriceRange] = useState<number[]>([minBound, maxBound]);
-
-  useEffect(() => {
-    const from = filters.minPrice ? parseFloat(filters.minPrice) : minBound;
-    const to = filters.maxPrice ? parseFloat(filters.maxPrice) : maxBound;
-    const clampedFrom = Math.max(minBound, Math.min(from, maxBound));
-    const clampedTo = Math.max(minBound, Math.min(to, maxBound));
-    setPriceRange([clampedFrom, clampedTo]);
-  }, [filters.minPrice, filters.maxPrice, minBound, maxBound]);
-
-  const hasActiveFilters =
-    filters.searchTerm ||
-    filters.selectedGame !== "all" ||
-    filters.selectedType !== "all" ||
-    filters.minPrice ||
-    filters.maxPrice ||
-    filters.startDate ||
-    filters.endDate;
-
-  // Apply filters
-  useEffect(() => {
-    let filtered = transactions;
-
-    if (debouncedSearchTerm) {
-      filtered = filtered.filter((t) =>
-        t.item.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-      );
-    }
-
-    if (filters.selectedGame !== "all") {
-      filtered = filtered.filter((t) => t.game === filters.selectedGame);
-    }
-
-    if (filters.selectedType !== "all") {
-      filtered = filtered.filter((t) => t.type === filters.selectedType);
-    }
-
-    if (debouncedMinPrice) {
-      const minPriceCents = parseFloat(debouncedMinPrice) * 100;
-      filtered = filtered.filter((t) => t.price_cents >= minPriceCents);
-    }
-
-    if (debouncedMaxPrice) {
-      const maxPriceCents = parseFloat(debouncedMaxPrice) * 100;
-      filtered = filtered.filter((t) => t.price_cents <= maxPriceCents);
-    }
-
-    if (filters.startDate) {
-      const start = startOfDay(filters.startDate);
-      filtered = filtered.filter((t) => {
-        const parsed = parseTransactionDate(t.date);
-        return parsed.date && parsed.date >= start;
-      });
-    }
-
-    if (filters.endDate) {
-      const end = endOfDay(filters.endDate);
-      filtered = filtered.filter((t) => {
-        const parsed = parseTransactionDate(t.date);
-        return parsed.date && parsed.date <= end;
-      });
-    }
-
-    setFilteredCount(filtered.length);
-    onFilteredTransactions(filtered);
-  }, [
-    debouncedSearchTerm,
-    filters.selectedGame,
-    filters.selectedType,
-    debouncedMinPrice,
-    debouncedMaxPrice,
-    filters.startDate,
-    filters.endDate,
-    transactions,
-    onFilteredTransactions,
-  ]);
-
-  const clearFilters = () => {
-    setFilters(INITIAL_FILTER_STATE);
-    setPriceRange([minBound, maxBound]);
-    onFilteredTransactions(transactions);
-  };
-
-  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handlePriceRangeCommit = (values: number[]) => {
+    const [from, to] = values;
+    updateFilter("minPrice", String(from));
+    updateFilter("maxPrice", String(to));
   };
 
   return (
     <section aria-labelledby="filters-title">
       <div className="flex items-center gap-3 mb-4">
+        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -182,12 +73,13 @@ export const TransactionFilters = ({
           />
         </div>
 
-        <Popover open={open} onOpenChange={setOpen}>
+        {/* Filters Popover */}
+        <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Filters
-              <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-4 w-4 transition-transform ${isFilterOpen ? "rotate-180" : ""}`} />
             </Button>
           </PopoverTrigger>
 
@@ -206,18 +98,19 @@ export const TransactionFilters = ({
                   )}
                 </div>
 
-                {/* Filter Grid */}
+                {/* Filter Controls */}
                 <div className="grid gap-4">
-                  {/* Game and Type */}
+                  {/* Game and Type Row */}
                   <div className="grid grid-cols-2 gap-4">
+                    {/* Game Filter */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Game</Label>
-                      <Popover open={gameSearchOpen} onOpenChange={setGameSearchOpen}>
+                      <Popover open={isGameSearchOpen} onOpenChange={setIsGameSearchOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            aria-expanded={gameSearchOpen}
+                            aria-expanded={isGameSearchOpen}
                             className="h-10 w-full justify-between border-input/60 bg-background hover:bg-accent/50 hover:border-input transition-colors font-normal"
                           >
                             <span className="truncate">
@@ -238,7 +131,7 @@ export const TransactionFilters = ({
                                   value="all"
                                   onSelect={() => {
                                     updateFilter("selectedGame", "all");
-                                    setGameSearchOpen(false);
+                                    setIsGameSearchOpen(false);
                                   }}
                                 >
                                   <Check
@@ -255,7 +148,7 @@ export const TransactionFilters = ({
                                     value={game}
                                     onSelect={() => {
                                       updateFilter("selectedGame", game);
-                                      setGameSearchOpen(false);
+                                      setIsGameSearchOpen(false);
                                     }}
                                   >
                                     <Check
@@ -274,6 +167,7 @@ export const TransactionFilters = ({
                       </Popover>
                     </div>
 
+                    {/* Type Filter */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Type</Label>
                       <Select
@@ -292,10 +186,7 @@ export const TransactionFilters = ({
                           <SelectItem value="all" className="focus:bg-accent/80 cursor-pointer">
                             All types
                           </SelectItem>
-                          <SelectItem
-                            value="purchase"
-                            className="focus:bg-accent/80 cursor-pointer"
-                          >
+                          <SelectItem value="purchase" className="focus:bg-accent/80 cursor-pointer">
                             Purchases
                           </SelectItem>
                           <SelectItem value="sale" className="focus:bg-accent/80 cursor-pointer">
@@ -306,8 +197,9 @@ export const TransactionFilters = ({
                     </div>
                   </div>
 
-                  {/* Date Range */}
+                  {/* Date Range Row */}
                   <div className="grid grid-cols-2 gap-3">
+                    {/* Start Date */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Start date</Label>
                       <Popover>
@@ -338,6 +230,7 @@ export const TransactionFilters = ({
                       </Popover>
                     </div>
 
+                    {/* End Date */}
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">End date</Label>
                       <Popover>
@@ -379,13 +272,8 @@ export const TransactionFilters = ({
                         max={maxBound}
                         step={1}
                         minStepsBetweenThumbs={1}
-                        thumbCount={2}
-                        onValueChange={(v) => setPriceRange(v as number[])}
-                        onValueCommit={(v) => {
-                          const [from, to] = v as number[];
-                          updateFilter("minPrice", String(from));
-                          updateFilter("maxPrice", String(to));
-                        }}
+                        onValueChange={updatePriceRange}
+                        onValueCommit={handlePriceRangeCommit}
                         className="w-full"
                         aria-label="Price range"
                       />
@@ -402,7 +290,7 @@ export const TransactionFilters = ({
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Actions Footer */}
                 {hasActiveFilters && (
                   <div className="flex items-center justify-between pt-4 border-t border-border/50">
                     <div className="text-sm text-muted-foreground">
