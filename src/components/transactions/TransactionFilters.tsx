@@ -220,11 +220,8 @@ export const TransactionFilters = ({
                             selected={filters.startDate}
                             onSelect={(d) => updateFilter("startDate", d)}
                             initialFocus
-                            className="p-2 pointer-events-auto"
+                            className="pointer-events-auto"
                             showOutsideDays={false}
-                            captionLayout="dropdown-buttons"
-                            fromYear={2000}
-                            toYear={new Date().getFullYear()}
                           />
                         </PopoverContent>
                       </Popover>
@@ -251,11 +248,8 @@ export const TransactionFilters = ({
                             selected={filters.endDate}
                             onSelect={(d) => updateFilter("endDate", d)}
                             initialFocus
-                            className="p-2 pointer-events-auto"
+                            className="pointer-events-auto"
                             showOutsideDays={false}
-                            captionLayout="dropdown-buttons"
-                            fromYear={2000}
-                            toYear={new Date().getFullYear()}
                           />
                         </PopoverContent>
                       </Popover>
