@@ -16,13 +16,13 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-3",
-        caption: "flex justify-center items-center gap-2 px-1 pb-2 relative",
-        caption_label: "hidden",
-        nav: "flex items-center",
+        month: "space-y-4",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-medium",
+        nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -49,17 +49,7 @@ function Calendar({
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
-        caption_dropdowns: "flex items-center gap-1 [&>span]:hidden",
-        dropdown_month: "relative inline-flex",
-        dropdown_year: "relative inline-flex",
-        dropdown: "absolute max-h-[150px] overflow-y-auto rounded-md border border-input bg-popover p-1 shadow-lg z-[100]",
         ...classNames,
-      }}
-      modifiersStyles={{
-        selected: {
-          backgroundColor: "hsl(var(--primary))",
-          color: "hsl(var(--primary-foreground))",
-        },
       }}
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
