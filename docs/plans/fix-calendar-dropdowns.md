@@ -168,3 +168,23 @@ useEffect(() => {
 
 ### 🚀 **Ready for Use:**
 The calendar component now provides a polished, professional UI that perfectly matches your Steam Market Analytics app's design system. Users can navigate through months and years using either the arrow buttons or the dropdown selectors, and everything stays in sync.
+
+## 🐛 **Critical Bug Fix - Calendar Days Update**
+**Issue**: When changing month/year via dropdowns, the calendar days display wasn't updating, causing wrong date selection.
+
+**Solution**: Fixed date construction in dropdown handlers:
+- **Before**: Modified existing `displayMonth` object (didn't work properly)
+- **After**: Created new Date objects with `new Date(year, month, 1)` format
+- **Result**: Calendar now correctly displays days for selected month/year
+
+**Technical Fix**:
+```typescript
+// OLD - Didn't update calendar display
+const newMonth = new Date(displayMonth);
+newMonth.setMonth(newMonthValue);
+goToMonth(newMonth);
+
+// NEW - Properly updates calendar
+const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
+goToMonth(newDate);
+```
