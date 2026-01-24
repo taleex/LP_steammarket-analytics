@@ -82,18 +82,14 @@ function Calendar({
 
           const handleMonthChange = React.useCallback((value: string) => {
             const newMonthValue = Number(value);
-            setCurrentMonth(newMonthValue);
-            const newMonth = new Date(displayMonth);
-            newMonth.setMonth(newMonthValue);
-            goToMonth(newMonth);
+            const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
+            goToMonth(newDate);
           }, [displayMonth, goToMonth]);
 
           const handleYearChange = React.useCallback((value: string) => {
             const newYearValue = Number(value);
-            setCurrentYear(newYearValue);
-            const newMonth = new Date(displayMonth);
-            newMonth.setFullYear(newYearValue);
-            goToMonth(newMonth);
+            const newDate = new Date(newYearValue, displayMonth.getMonth(), 1);
+            goToMonth(newDate);
           }, [displayMonth, goToMonth]);
 
           return (
