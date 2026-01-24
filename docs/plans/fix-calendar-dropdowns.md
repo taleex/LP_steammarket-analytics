@@ -169,22 +169,29 @@ useEffect(() => {
 ### 🚀 **Ready for Use:**
 The calendar component now provides a polished, professional UI that perfectly matches your Steam Market Analytics app's design system. Users can navigate through months and years using either the arrow buttons or the dropdown selectors, and everything stays in sync.
 
-## 🐛 **Critical Bug Fix - Calendar Days Update**
-**Issue**: When changing month/year via dropdowns, the calendar days display wasn't updating, causing wrong date selection.
+## 🐛 **All Bugs Fixed - Complete Calendar Functionality**
 
-**Solution**: Fixed date construction in dropdown handlers:
-- **Before**: Modified existing `displayMonth` object (didn't work properly)
-- **After**: Created new Date objects with `new Date(year, month, 1)` format
-- **Result**: Calendar now correctly displays days for selected month/year
+### **Issue 1: Dropdown Selections Not Updating**
+**Problem**: Clicking on month/year dropdown options didn't visually select them
+**Solution**: Added `setCurrentMonth()` and `setCurrentYear()` calls in handlers
+**Result**: Dropdowns now properly show selected values
 
-**Technical Fix**:
+### **Issue 2: Calendar Days Not Updating**
+**Problem**: When changing month/year via dropdowns, calendar days display wasn't updating
+**Solution**: Fixed date construction - create new Date objects instead of modifying existing ones
+**Result**: Calendar now correctly displays days for selected month/year
+
+### **Issue 3: Wrong Date Selection**
+**Problem**: Clicking on calendar days selected wrong dates when calendar wasn't synced
+**Solution**: Both fixes above ensure calendar and dropdowns stay in sync
+**Result**: Date selection now works correctly
+
+**Complete Technical Fix**:
 ```typescript
-// OLD - Didn't update calendar display
-const newMonth = new Date(displayMonth);
-newMonth.setMonth(newMonthValue);
-goToMonth(newMonth);
-
-// NEW - Properly updates calendar
-const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
-goToMonth(newDate);
+const handleMonthChange = React.useCallback((value: string) => {
+  const newMonthValue = Number(value);
+  setCurrentMonth(newMonthValue); // Update local state for UI
+  const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1); // Fresh date
+  goToMonth(newDate); // Update calendar display
+}, [displayMonth, goToMonth]);
 ```

@@ -20,6 +20,12 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [currentMonth, setCurrentMonth] = React.useState(props.month || new Date());
+
+  const handleMonthChange = React.useCallback((date: Date) => {
+    setCurrentMonth(date);
+  }, []);
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -27,6 +33,8 @@ function Calendar({
       captionLayout="buttons"
       fromYear={2012}
       toYear={new Date().getFullYear() + 1}
+      month={currentMonth}
+      onMonthChange={handleMonthChange}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -70,7 +78,7 @@ function Calendar({
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
         Caption: ({ displayMonth, ...props }) => {
-          const { goToMonth, previousMonth, nextMonth } = props as any;
+          const { goToMonth, previousMonth, nextMonth, onMonthChange } = props as any;
           const [currentMonth, setCurrentMonth] = React.useState(displayMonth.getMonth());
           const [currentYear, setCurrentYear] = React.useState(displayMonth.getFullYear());
 
@@ -84,15 +92,15 @@ function Calendar({
             const newMonthValue = Number(value);
             setCurrentMonth(newMonthValue);
             const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
-            goToMonth(newDate);
-          }, [displayMonth, goToMonth]);
+            onMonthChange?.(newDate) || goToMonth?.(newDate);
+          }, [displayMonth, goToMonth, onMonthChange]);
 
           const handleYearChange = React.useCallback((value: string) => {
             const newYearValue = Number(value);
             setCurrentYear(newYearValue);
             const newDate = new Date(newYearValue, displayMonth.getMonth(), 1);
-            goToMonth(newDate);
-          }, [displayMonth, goToMonth]);
+            onMonthChange?.(newDate) || goToMonth?.(newDate);
+          }, [displayMonth, goToMonth, onMonthChange]);
 
           return (
             <div className="flex items-center justify-center px-1 pt-1 relative h-10 gap-2">
