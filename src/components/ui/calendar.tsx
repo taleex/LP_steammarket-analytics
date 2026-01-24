@@ -20,31 +20,128 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const [currentMonth, setCurrentMonth] = React.useState(props.month || new Date());
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(props.month || new Date());
 
   const handleMonthChange = React.useCallback((date: Date) => {
+    console.log('Month change requested:', date);
     setCurrentMonth(date);
   }, []);
+
+  // Debug: Log current month changes
+  React.useEffect(() => {
+    console.log('Current month state:', currentMonth);
+  }, [currentMonth]);
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3 pointer-events-auto", className)}
-      captionLayout="buttons"
+      captionLayout="dropdown"
       fromYear={2012}
       toYear={new Date().getFullYear() + 1}
       month={currentMonth}
       onMonthChange={handleMonthChange}
+      components={{
+        IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
+        IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Caption: ({ displayMonth, ...props }) => {
+          const { goToMonth, previousMonth, nextMonth } = props as any;
+          const [localMonth, setLocalMonth] = React.useState(displayMonth.getMonth());
+          const [localYear, setLocalYear] = React.useState(displayMonth.getFullYear());
+
+          // Sync local state with displayMonth changes
+          React.useEffect(() => {
+            setLocalMonth(displayMonth.getMonth());
+            setLocalYear(displayMonth.getFullYear());
+          }, [displayMonth]);
+
+          const handleMonthChange = React.useCallback((value: string) => {
+            const newMonthValue = Number(value);
+            setLocalMonth(newMonthValue);
+            const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
+            goToMonth?.(newDate);
+          }, [displayMonth, goToMonth]);
+
+          const handleYearChange = React.useCallback((value: string) => {
+            const newYearValue = Number(value);
+            setLocalYear(newYearValue);
+            const newDate = new Date(newYearValue, displayMonth.getMonth(), 1);
+            goToMonth?.(newDate);
+          }, [displayMonth, goToMonth]);
+
+          return (
+            <div className="flex items-center justify-center px-1 pt-1 relative h-10 gap-2">
+              <button
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+                onClick={() => previousMonth && goToMonth(previousMonth)}
+                disabled={!previousMonth}
+                type="button"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={String(localMonth)}
+                  onValueChange={handleMonthChange}
+                  aria-label="Select month"
+                >
+                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50 focus:ring-2 focus:ring-primary/50">
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[120px] bg-popover border-border shadow-lg">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={String(i)} className="text-sm hover:bg-accent/80 focus:bg-accent">
+                        {new Date(2000, i).toLocaleDateString(undefined, { month: 'long' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(localYear)}
+                  onValueChange={handleYearChange}
+                  aria-label="Select year"
+                >
+                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50 focus:ring-2 focus:ring-primary/50">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[80px] bg-popover border-border shadow-lg">
+                    {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
+                      <SelectItem key={i} value={String(2012 + i)} className="text-sm hover:bg-accent/80 focus:bg-accent">
+                        {2012 + i}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <button
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+                onClick={() => nextMonth && goToMonth(nextMonth)}
+                disabled={!nextMonth}
+                type="button"
+                aria-label="Next month"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        },
+      }}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex items-center justify-center px-1 pt-1 relative h-10",
+        caption: "flex items-center justify-center px-1 pt-1 relative h-10 gap-2",
         caption_label: "hidden",
         caption_dropdowns: "flex items-center gap-2",
         dropdown_month: "relative inline-flex",
         dropdown_year: "relative inline-flex",
         dropdown: "absolute z-50 top-full mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-md",
-        vhidden: "sr-only",
         nav: "flex items-center gap-2",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -73,88 +170,6 @@ function Calendar({
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
         ...classNames,
-      }}
-      components={{
-        IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Caption: ({ displayMonth, ...props }) => {
-          const { goToMonth, previousMonth, nextMonth, onMonthChange } = props as any;
-          const [currentMonth, setCurrentMonth] = React.useState(displayMonth.getMonth());
-          const [currentYear, setCurrentYear] = React.useState(displayMonth.getFullYear());
-
-          // Sync local state with displayMonth changes
-          React.useEffect(() => {
-            setCurrentMonth(displayMonth.getMonth());
-            setCurrentYear(displayMonth.getFullYear());
-          }, [displayMonth]);
-
-          const handleMonthChange = React.useCallback((value: string) => {
-            const newMonthValue = Number(value);
-            setCurrentMonth(newMonthValue);
-            const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
-            onMonthChange?.(newDate) || goToMonth?.(newDate);
-          }, [displayMonth, goToMonth, onMonthChange]);
-
-          const handleYearChange = React.useCallback((value: string) => {
-            const newYearValue = Number(value);
-            setCurrentYear(newYearValue);
-            const newDate = new Date(newYearValue, displayMonth.getMonth(), 1);
-            onMonthChange?.(newDate) || goToMonth?.(newDate);
-          }, [displayMonth, goToMonth, onMonthChange]);
-
-          return (
-            <div className="flex items-center justify-center px-1 pt-1 relative h-10 gap-2">
-              <button
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-                )}
-                onClick={() => previousMonth && goToMonth(previousMonth)}
-                disabled={!previousMonth}
-                type="button"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <div className="flex items-center gap-2">
-                <Select value={String(currentMonth)} onValueChange={handleMonthChange}>
-                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="min-w-[120px]">
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i} value={String(i)} className="text-sm">
-                        {new Date(2000, i).toLocaleDateString(undefined, { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={String(currentYear)} onValueChange={handleYearChange}>
-                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="min-w-[80px]">
-                    {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
-                      <SelectItem key={i} value={String(2012 + i)} className="text-sm">
-                        {2012 + i}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <button
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-                )}
-                onClick={() => nextMonth && goToMonth(nextMonth)}
-                disabled={!nextMonth}
-                type="button"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          );
-        },
       }}
       {...props}
     />

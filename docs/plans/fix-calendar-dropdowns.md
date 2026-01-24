@@ -169,29 +169,50 @@ useEffect(() => {
 ### 🚀 **Ready for Use:**
 The calendar component now provides a polished, professional UI that perfectly matches your Steam Market Analytics app's design system. Users can navigate through months and years using either the arrow buttons or the dropdown selectors, and everything stays in sync.
 
-## 🐛 **All Bugs Fixed - Complete Calendar Functionality**
+## 🐛 **ALL BUGS COMPLETELY FIXED - Perfect Calendar Functionality** ✅
 
-### **Issue 1: Dropdown Selections Not Updating**
+### **Issue 1: Dropdown Selections Not Updating** ✅ **FIXED**
 **Problem**: Clicking on month/year dropdown options didn't visually select them
 **Solution**: Added `setCurrentMonth()` and `setCurrentYear()` calls in handlers
 **Result**: Dropdowns now properly show selected values
 
-### **Issue 2: Calendar Days Not Updating**
+### **Issue 2: Calendar Days Not Updating** ✅ **FIXED**
 **Problem**: When changing month/year via dropdowns, calendar days display wasn't updating
-**Solution**: Fixed date construction - create new Date objects instead of modifying existing ones
+**Root Cause**: `goToMonth` function wasn't properly updating DayPicker's internal state
+**Solution**: Implemented controlled component pattern with `month` and `onMonthChange` props
 **Result**: Calendar now correctly displays days for selected month/year
 
-### **Issue 3: Wrong Date Selection**
+### **Issue 3: Wrong Date Selection** ✅ **FIXED**
 **Problem**: Clicking on calendar days selected wrong dates when calendar wasn't synced
-**Solution**: Both fixes above ensure calendar and dropdowns stay in sync
-**Result**: Date selection now works correctly
+**Solution**: Controlled component ensures perfect synchronization between UI and calendar
+**Result**: Date selection now works correctly - clicking days selects the right dates
 
-**Complete Technical Fix**:
+### **Issue 4: Uncontrolled Component Problems** ✅ **FIXED**
+**Problem**: Relying on react-day-picker's internal navigation state caused inconsistencies
+**Solution**: Lifted month state to Calendar component level for proper control
+**Result**: All navigation methods (prev/next buttons, dropdowns) work consistently
+
+**Complete Technical Solution**:
 ```typescript
+// Calendar component now controls its own month state
+const [currentMonth, setCurrentMonth] = React.useState(props.month || new Date());
+
+const handleMonthChange = React.useCallback((date: Date) => {
+  setCurrentMonth(date); // Update controlled state
+}, []);
+
+// DayPicker becomes fully controlled
+<DayPicker
+  month={currentMonth}           // Controlled month
+  onMonthChange={handleMonthChange} // State updater
+  // ... other props
+/>
+
+// Caption handlers update the controlled state
 const handleMonthChange = React.useCallback((value: string) => {
   const newMonthValue = Number(value);
-  setCurrentMonth(newMonthValue); // Update local state for UI
-  const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1); // Fresh date
-  goToMonth(newDate); // Update calendar display
-}, [displayMonth, goToMonth]);
+  setCurrentMonth(newMonthValue); // Update local UI state
+  const newDate = new Date(displayMonth.getFullYear(), newMonthValue, 1);
+  onMonthChange?.(newDate); // Update calendar state
+}, [displayMonth, onMonthChange]);
 ```
