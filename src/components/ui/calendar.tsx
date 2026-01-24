@@ -17,20 +17,20 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3 pointer-events-auto", className)}
-      captionLayout="dropdown-buttons"
+      captionLayout="buttons"
       fromYear={2012}
       toYear={new Date().getFullYear() + 1}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-between items-center px-1 pt-1 relative h-10",
+        caption: "flex items-center justify-center px-1 pt-1 relative h-10",
         caption_label: "hidden",
-        caption_dropdowns: "flex items-center gap-2 mx-auto",
+        caption_dropdowns: "flex items-center gap-2",
         dropdown_month: "relative inline-flex",
         dropdown_year: "relative inline-flex",
         dropdown: "absolute z-50 top-full mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-md",
         vhidden: "sr-only",
-        nav: "flex items-center",
+        nav: "flex items-center gap-2",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -62,6 +62,67 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Caption: ({ displayMonth, ...props }) => {
+          const { goToMonth, previousMonth, nextMonth } = props as any;
+          return (
+            <div className="flex items-center justify-center px-1 pt-1 relative h-10 gap-2">
+              <button
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+                onClick={() => previousMonth && goToMonth(previousMonth)}
+                disabled={!previousMonth}
+                type="button"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
+                  value={displayMonth.getMonth()}
+                  onChange={(e) => {
+                    const newMonth = new Date(displayMonth);
+                    newMonth.setMonth(Number(e.target.value));
+                    goToMonth(newMonth);
+                  }}
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {new Date(2000, i).toLocaleDateString(undefined, { month: 'long' })}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
+                  value={displayMonth.getFullYear()}
+                  onChange={(e) => {
+                    const newMonth = new Date(displayMonth);
+                    newMonth.setFullYear(Number(e.target.value));
+                    goToMonth(newMonth);
+                  }}
+                >
+                  {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
+                    <option key={i} value={2012 + i}>
+                      {2012 + i}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                )}
+                onClick={() => nextMonth && goToMonth(nextMonth)}
+                disabled={!nextMonth}
+                type="button"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        },
       }}
       {...props}
     />
