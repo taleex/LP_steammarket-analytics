@@ -64,6 +64,31 @@ function Calendar({
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
         Caption: ({ displayMonth, ...props }) => {
           const { goToMonth, previousMonth, nextMonth } = props as any;
+          const [currentMonth, setCurrentMonth] = React.useState(displayMonth.getMonth());
+          const [currentYear, setCurrentYear] = React.useState(displayMonth.getFullYear());
+
+          // Sync local state with displayMonth changes
+          React.useEffect(() => {
+            setCurrentMonth(displayMonth.getMonth());
+            setCurrentYear(displayMonth.getFullYear());
+          }, [displayMonth]);
+
+          const handleMonthChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+            const newMonthValue = Number(e.target.value);
+            setCurrentMonth(newMonthValue);
+            const newMonth = new Date(displayMonth);
+            newMonth.setMonth(newMonthValue);
+            goToMonth(newMonth);
+          }, [displayMonth, goToMonth]);
+
+          const handleYearChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+            const newYearValue = Number(e.target.value);
+            setCurrentYear(newYearValue);
+            const newMonth = new Date(displayMonth);
+            newMonth.setFullYear(newYearValue);
+            goToMonth(newMonth);
+          }, [displayMonth, goToMonth]);
+
           return (
             <div className="flex items-center justify-center px-1 pt-1 relative h-10 gap-2">
               <button
@@ -80,12 +105,8 @@ function Calendar({
               <div className="flex items-center gap-2">
                 <select
                   className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
-                  value={displayMonth.getMonth()}
-                  onChange={(e) => {
-                    const newMonth = new Date(displayMonth);
-                    newMonth.setMonth(Number(e.target.value));
-                    goToMonth(newMonth);
-                  }}
+                  value={currentMonth}
+                  onChange={handleMonthChange}
                 >
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i} value={i}>
@@ -95,12 +116,8 @@ function Calendar({
                 </select>
                 <select
                   className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
-                  value={displayMonth.getFullYear()}
-                  onChange={(e) => {
-                    const newMonth = new Date(displayMonth);
-                    newMonth.setFullYear(Number(e.target.value));
-                    goToMonth(newMonth);
-                  }}
+                  value={currentYear}
+                  onChange={handleYearChange}
                 >
                   {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
                     <option key={i} value={2012 + i}>
