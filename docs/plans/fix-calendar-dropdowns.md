@@ -133,14 +133,25 @@ useEffect(() => {
 ---
 
 ## Implementation Summary ✅ **COMPLETED**
-- **Solution Implemented**: Local state management with useEffect synchronization
+- **Solution Implemented**: Local state management with useEffect synchronization + UI improvements
 - **Technical Details**:
   - Added `currentMonth` and `currentYear` state to Caption component
   - Used `useEffect` to sync local state with `displayMonth` prop changes
   - Implemented `useCallback` handlers for month and year changes
   - Added proper TypeScript types for event handlers
+  - **Replaced ugly native select elements with shadcn/ui Select components**
+  - **Custom styling to match app design**: transparent background, hover effects, proper sizing
+
+## UI Improvements Made:
+- ✅ **Replaced native HTML selects** with proper shadcn/ui Select components
+- ✅ **Transparent background** that matches calendar design
+- ✅ **Hover effects** with accent color background
+- ✅ **Compact sizing** (h-8) to fit calendar header
+- ✅ **Proper dropdown content** with consistent styling
+- ✅ **Check icons** for selected items
+- ✅ **Smooth animations** and proper z-index layering
 
 ## Next Steps
-- [ ] **Test the fix** - verify dropdown selections update correctly
+- [ ] **Test the fix** - verify dropdown selections and UI work correctly
 - [ ] **Update plan status** - mark implementation as complete
-- [ ] **Commit changes** - save the calendar fix
+- [ ] **Commit changes** - save the calendar UI improvements

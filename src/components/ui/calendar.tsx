@@ -4,6 +4,13 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -73,16 +80,16 @@ function Calendar({
             setCurrentYear(displayMonth.getFullYear());
           }, [displayMonth]);
 
-          const handleMonthChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-            const newMonthValue = Number(e.target.value);
+          const handleMonthChange = React.useCallback((value: string) => {
+            const newMonthValue = Number(value);
             setCurrentMonth(newMonthValue);
             const newMonth = new Date(displayMonth);
             newMonth.setMonth(newMonthValue);
             goToMonth(newMonth);
           }, [displayMonth, goToMonth]);
 
-          const handleYearChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-            const newYearValue = Number(e.target.value);
+          const handleYearChange = React.useCallback((value: string) => {
+            const newYearValue = Number(value);
             setCurrentYear(newYearValue);
             const newMonth = new Date(displayMonth);
             newMonth.setFullYear(newYearValue);
@@ -103,28 +110,30 @@ function Calendar({
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-2">
-                <select
-                  className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
-                  value={currentMonth}
-                  onChange={handleMonthChange}
-                >
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {new Date(2000, i).toLocaleDateString(undefined, { month: 'long' })}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="relative inline-flex appearance-none bg-transparent border-none p-0 font-medium text-sm cursor-pointer hover:bg-accent/50 rounded px-1"
-                  value={currentYear}
-                  onChange={handleYearChange}
-                >
-                  {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
-                    <option key={i} value={2012 + i}>
-                      {2012 + i}
-                    </option>
-                  ))}
-                </select>
+                <Select value={String(currentMonth)} onValueChange={handleMonthChange}>
+                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[120px]">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={String(i)} className="text-sm">
+                        {new Date(2000, i).toLocaleDateString(undefined, { month: 'long' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={String(currentYear)} onValueChange={handleYearChange}>
+                  <SelectTrigger className="w-auto h-8 px-2 text-sm font-medium border-none bg-transparent hover:bg-accent/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="min-w-[80px]">
+                    {Array.from({ length: new Date().getFullYear() + 1 - 2012 + 1 }, (_, i) => (
+                      <SelectItem key={i} value={String(2012 + i)} className="text-sm">
+                        {2012 + i}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <button
                 className={cn(
