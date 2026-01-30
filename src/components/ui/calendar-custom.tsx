@@ -4,11 +4,10 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import "@/components/ui/calendar-styles.css";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function Calendar({
+function CalendarCustom({
   className,
   classNames,
   showOutsideDays = true,
@@ -17,7 +16,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3 pointer-events-auto", className)}
+      className={cn("p-3", className)}
       captionLayout="dropdown-buttons"
       fromYear={2012}
       toYear={new Date().getFullYear() + 1}
@@ -30,7 +29,7 @@ function Calendar({
         month: "space-y-4",
         caption: "flex justify-between items-center px-1 pt-1 relative h-10",
         caption_label: "hidden",
-        caption_dropdowns: "calendar-dropdowns",
+        caption_dropdowns: "calendar-dropdowns-custom",
         dropdown_month: "relative",
         dropdown_year: "relative",
         dropdown: "absolute z-50 top-full mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-md",
@@ -68,6 +67,6 @@ function Calendar({
     />
   );
 }
-Calendar.displayName = "Calendar";
+CalendarCustom.displayName = "CalendarCustom";
 
-export { Calendar };
+export { CalendarCustom };

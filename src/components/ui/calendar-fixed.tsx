@@ -8,7 +8,7 @@ import "@/components/ui/calendar-styles.css";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function Calendar({
+function CalendarFixed({
   className,
   classNames,
   showOutsideDays = true,
@@ -68,6 +68,6 @@ function Calendar({
     />
   );
 }
-Calendar.displayName = "Calendar";
+CalendarFixed.displayName = "CalendarFixed";
 
-export { Calendar };
+export { CalendarFixed };

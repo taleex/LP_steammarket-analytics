@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, Filter, X, ChevronDown, Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { CalendarCustom as Calendar } from "@/components/ui/calendar-custom";
 import { format } from "date-fns";
 import { Slider } from "@/components/ui/slider";
 import { Transaction } from "@/types/transaction";
