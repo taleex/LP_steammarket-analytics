@@ -121,60 +121,146 @@ All colors MUST be HSL.
 
 /* React Day Picker dropdown styles */
 .rdp-vhidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .rdp-caption {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 4px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 4px !important;
 }
 
 .rdp-caption_dropdowns {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  padding: 4px !important;
+  box-shadow: 0 1px 3px hsl(var(--border) / 0.3) !important;
+  z-index: 10 !important;
 }
 
 .rdp-caption_dropdowns select {
-  appearance: none;
-  -webkit-appearance: none;
-  height: 28px;
-  padding: 0 24px 0 10px;
-  border-radius: 6px;
-  border: 1px solid hsl(var(--input));
-  background-color: hsl(var(--background));
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  color: hsl(var(--foreground));
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  height: 32px !important;
+  min-width: 120px !important;
+  padding: 0 32px 0 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid hsl(var(--input)) !important;
+  background-color: hsl(var(--background)) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='hsl(var(--foreground))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: inset 0 1px 0 hsl(var(--border)) !important;
 }
 
 .rdp-caption_dropdowns select:hover {
-  background-color: hsl(var(--accent));
-  border-color: hsl(var(--border));
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px hsl(var(--border) / 0.2) !important;
 }
 
 .rdp-caption_dropdowns select:focus {
-  outline: none;
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 0 1px hsl(var(--ring) / 0.2);
+  outline: none !important;
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2), inset 0 1px 0 hsl(var(--border)) !important;
+}
+
+.rdp-caption_dropdowns select:active {
+  transform: translateY(0) !important;
+  box-shadow: inset 0 1px 0 hsl(var(--border)) !important;
 }
 
 .rdp-caption_dropdowns select option {
-  background-color: hsl(var(--popover));
-  color: hsl(var(--popover-foreground));
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  padding: 8px 12px !important;
+}
+
+/* Improve navigation button styling */
+.rdp-nav {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.rdp-nav_button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: hsl(var(--foreground)) !important;
+  opacity: 0.7 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.rdp-nav_button:hover {
+  opacity: 1 !important;
+  background: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  transform: translateY(-1px) !important;
+}
+
+.rdp-nav_button:active {
+  transform: translateY(0) !important;
+}
+
+.rdp-nav_button:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Additional specificity for React Day Picker */
+.rdp .rdp-caption_dropdowns {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  padding: 4px !important;
+  box-shadow: 0 1px 3px hsl(var(--border) / 0.3) !important;
+}
+
+.rdp .rdp-caption_dropdowns select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  height: 32px !important;
+  min-width: 120px !important;
+  padding: 0 32px 0 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid hsl(var(--input)) !important;
+  background-color: hsl(var(--background)) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='hsl(var(--foreground))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: inset 0 1px 0 hsl(var(--border)) !important;
 }

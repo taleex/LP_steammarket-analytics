@@ -36,8 +36,8 @@ function Calendar({
         vhidden: "sr-only",
         nav: "flex items-center",
         nav_button: cn(
-          buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          buttonVariants({ variant: "ghost" }),
+          "h-8 w-8 p-0 opacity-60 hover:opacity-100 hover:bg-transparent hover:text-foreground transition-all duration-200"
         ),
         nav_button_previous: "",
         nav_button_next: "",
