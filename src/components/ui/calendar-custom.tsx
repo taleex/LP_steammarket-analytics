@@ -4,6 +4,7 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import "@/components/ui/calendar-styles.css";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -16,7 +17,7 @@ function CalendarCustom({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 pointer-events-auto", className)}
       captionLayout="dropdown-buttons"
       fromYear={2012}
       toYear={new Date().getFullYear() + 1}
@@ -27,18 +28,15 @@ function CalendarCustom({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-between items-center px-1 pt-1 relative h-10",
+        caption: "",
         caption_label: "hidden",
-        caption_dropdowns: "calendar-dropdowns-custom",
-        dropdown_month: "relative",
-        dropdown_year: "relative",
-        dropdown: "absolute z-50 top-full mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-md",
+        caption_dropdowns: "",
+        dropdown_month: "",
+        dropdown_year: "",
+        dropdown: "",
         vhidden: "sr-only",
-        nav: "flex items-center",
-        nav_button: cn(
-          buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 p-0 opacity-60 hover:opacity-100 hover:bg-transparent hover:text-foreground transition-all duration-200"
-        ),
+        nav: "",
+        nav_button: cn(buttonVariants({ variant: "ghost" }), "h-7 w-7 p-0"),
         nav_button_previous: "",
         nav_button_next: "",
         table: "w-full border-collapse space-y-1",
