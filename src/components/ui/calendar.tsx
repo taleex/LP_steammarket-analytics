@@ -28,20 +28,17 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex items-center justify-between gap-1 px-1 pt-1 h-10",
+        caption: "",
         caption_label: "hidden",
-        caption_dropdowns: "flex items-center gap-1 flex-1 justify-center",
+        caption_dropdowns: "",
         dropdown_month: "",
         dropdown_year: "",
         dropdown: "",
         vhidden: "sr-only",
-        nav: "flex items-center gap-1",
-        nav_button: cn(
-          buttonVariants({ variant: "ghost" }),
-          "h-7 w-7 p-0 opacity-60 hover:opacity-100"
-        ),
-        nav_button_previous: "order-first",
-        nav_button_next: "order-last",
+        nav: "",
+        nav_button: cn(buttonVariants({ variant: "ghost" }), "h-7 w-7 p-0"),
+        nav_button_previous: "",
+        nav_button_next: "",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
