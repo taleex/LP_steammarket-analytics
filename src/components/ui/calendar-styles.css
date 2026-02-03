@@ -16,12 +16,13 @@
 /* Caption container: use CSS Grid for precise positioning */
 .rdp-caption {
   display: grid !important;
-  grid-template-columns: auto 1fr auto !important;
+  grid-template-columns: 32px 1fr 32px !important;
+  grid-template-rows: auto !important;
   align-items: center !important;
   gap: 8px !important;
-  padding: 0 4px !important;
-  height: 40px !important;
-  position: relative !important;
+  padding: 0 !important;
+  min-height: 40px !important;
+  margin-bottom: 8px !important;
 }
 
 /* Navigation container: dissolve wrapper to enable grid placement of children */
@@ -30,12 +31,14 @@
 }
 
 /* Previous button: place in first grid column */
-.rdp-nav_button_previous {
+button.rdp-nav_button_previous,
+.rdp-nav_button.rdp-nav_button_previous {
   grid-column: 1 !important;
   grid-row: 1 !important;
+  justify-self: start !important;
 }
 
-/* Dropdowns container: place in middle column (2), centered */
+/* Dropdowns container: place in middle column, centered */
 .rdp-caption_dropdowns {
   grid-column: 2 !important;
   grid-row: 1 !important;
@@ -43,45 +46,57 @@
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px !important;
+  gap: 6px !important;
   background: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
-  padding: 4px !important;
-  box-shadow: 0 1px 3px hsl(var(--border) / 0.3) !important;
+  padding: 4px 8px !important;
 }
 
 /* Next button: place in third grid column */
-.rdp-nav_button_next {
+button.rdp-nav_button_next,
+.rdp-nav_button.rdp-nav_button_next {
   grid-column: 3 !important;
   grid-row: 1 !important;
+  justify-self: end !important;
 }
 
-/* Dropdown wrapper styling */
+/* Dropdown wrapper styling - make them inline */
 .rdp-dropdown_month,
 .rdp-dropdown_year {
   position: relative !important;
-  display: inline-block !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Hide the dropdown icon that comes with react-day-picker */
+.rdp-dropdown_icon {
+  display: none !important;
 }
 
 /* Dropdown selects styling */
-.rdp-caption_dropdowns select {
+.rdp-caption_dropdowns select,
+.rdp-dropdown_month select,
+.rdp-dropdown_year select {
   appearance: none !important;
   -webkit-appearance: none !important;
+  -moz-appearance: none !important;
   height: 28px !important;
-  min-width: 70px !important;
-  padding: 0 24px 0 8px !important;
+  min-width: 65px !important;
+  padding: 0 22px 0 8px !important;
   border-radius: 4px !important;
   border: 1px solid hsl(var(--input)) !important;
   background-color: hsl(var(--background)) !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 6px center !important;
+  background-size: 10px !important;
   color: hsl(var(--foreground)) !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.15s ease !important;
+  line-height: 28px !important;
 }
 
 .rdp-caption_dropdowns select:hover {
@@ -98,6 +113,7 @@
 .rdp-caption_dropdowns select option {
   background-color: hsl(var(--popover)) !important;
   color: hsl(var(--popover-foreground)) !important;
+  padding: 8px !important;
 }
 
 /* Navigation button styling */
@@ -112,8 +128,9 @@
   background: transparent !important;
   color: hsl(var(--foreground)) !important;
   opacity: 0.7 !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.15s ease !important;
   cursor: pointer !important;
+  padding: 0 !important;
 }
 
 .rdp-nav_button:hover {
@@ -125,4 +142,10 @@
 .rdp-nav_button:disabled {
   opacity: 0.3 !important;
   cursor: not-allowed !important;
+}
+
+/* Ensure SVG icons inside nav buttons are visible */
+.rdp-nav_button svg {
+  width: 16px !important;
+  height: 16px !important;
 }
