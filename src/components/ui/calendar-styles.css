@@ -13,34 +13,37 @@
   border: 0 !important;
 }
 
-/* Caption container: use flexbox */
+/* Caption container: use CSS Grid for precise positioning */
 .rdp-caption {
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
   align-items: center !important;
-  justify-content: space-between !important;
+  gap: 8px !important;
   padding: 0 4px !important;
   height: 40px !important;
   position: relative !important;
 }
 
-/* Navigation container: remove from layout flow */
+/* Navigation container: dissolve wrapper to enable grid placement of children */
 .rdp-nav {
   display: contents !important;
 }
 
-/* Previous button: position on the left */
+/* Previous button: place in first grid column */
 .rdp-nav_button_previous {
-  order: 1 !important;
+  grid-column: 1 !important;
+  grid-row: 1 !important;
 }
 
-/* Dropdowns container: centered in the middle */
+/* Dropdowns container: place in middle column (2), centered */
 .rdp-caption_dropdowns {
-  order: 2 !important;
+  grid-column: 2 !important;
+  grid-row: 1 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 4px !important;
-  margin: 0 auto !important;
   background: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
@@ -48,9 +51,10 @@
   box-shadow: 0 1px 3px hsl(var(--border) / 0.3) !important;
 }
 
-/* Next button: position on the right */
+/* Next button: place in third grid column */
 .rdp-nav_button_next {
-  order: 3 !important;
+  grid-column: 3 !important;
+  grid-row: 1 !important;
 }
 
 /* Dropdown wrapper styling */
