@@ -1,7 +1,8 @@
 /* Calendar-specific styles to override React Day Picker defaults */
 
 /* Hide the visually hidden elements */
-.rdp-vhidden {
+.rdp-vhidden,
+.rdp .rdp-vhidden {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -14,6 +15,7 @@
 }
 
 /* Caption container: use CSS Grid for precise positioning */
+.rdp .rdp-caption,
 .rdp-caption {
   display: grid !important;
   grid-template-columns: 32px 1fr 32px !important;
@@ -26,11 +28,14 @@
 }
 
 /* Navigation container: dissolve wrapper to enable grid placement of children */
+.rdp .rdp-nav,
 .rdp-nav {
   display: contents !important;
 }
 
 /* Previous button: place in first grid column */
+.rdp .rdp-nav_button_previous,
+.rdp-nav_button_previous,
 button.rdp-nav_button_previous,
 .rdp-nav_button.rdp-nav_button_previous {
   grid-column: 1 !important;
@@ -39,6 +44,7 @@ button.rdp-nav_button_previous,
 }
 
 /* Dropdowns container: place in middle column, centered */
+.rdp .rdp-caption_dropdowns,
 .rdp-caption_dropdowns {
   grid-column: 2 !important;
   grid-row: 1 !important;
@@ -54,6 +60,8 @@ button.rdp-nav_button_previous,
 }
 
 /* Next button: place in third grid column */
+.rdp .rdp-nav_button_next,
+.rdp-nav_button_next,
 button.rdp-nav_button_next,
 .rdp-nav_button.rdp-nav_button_next {
   grid-column: 3 !important;
@@ -62,6 +70,8 @@ button.rdp-nav_button_next,
 }
 
 /* Dropdown wrapper styling - make them inline */
+.rdp .rdp-dropdown_month,
+.rdp .rdp-dropdown_year,
 .rdp-dropdown_month,
 .rdp-dropdown_year {
   position: relative !important;
@@ -70,27 +80,30 @@ button.rdp-nav_button_next,
 }
 
 /* Hide the dropdown icon that comes with react-day-picker */
+.rdp .rdp-dropdown_icon,
 .rdp-dropdown_icon {
   display: none !important;
 }
 
 /* Dropdown selects styling */
+.rdp select,
 .rdp-caption_dropdowns select,
 .rdp-dropdown_month select,
-.rdp-dropdown_year select {
+.rdp-dropdown_year select,
+.rdp .rdp-dropdown {
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   height: 28px !important;
-  min-width: 65px !important;
-  padding: 0 22px 0 8px !important;
-  border-radius: 4px !important;
+  min-width: 70px !important;
+  padding: 0 24px 0 10px !important;
+  border-radius: 6px !important;
   border: 1px solid hsl(var(--input)) !important;
   background-color: hsl(var(--background)) !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 6px center !important;
-  background-size: 10px !important;
+  background-size: 12px !important;
   color: hsl(var(--foreground)) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -99,17 +112,20 @@ button.rdp-nav_button_next,
   line-height: 28px !important;
 }
 
+.rdp select:hover,
 .rdp-caption_dropdowns select:hover {
   background-color: hsl(var(--accent)) !important;
   border-color: hsl(var(--border)) !important;
 }
 
+.rdp select:focus,
 .rdp-caption_dropdowns select:focus {
   outline: none !important;
   border-color: hsl(var(--ring)) !important;
   box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2) !important;
 }
 
+.rdp select option,
 .rdp-caption_dropdowns select option {
   background-color: hsl(var(--popover)) !important;
   color: hsl(var(--popover-foreground)) !important;
@@ -117,34 +133,38 @@ button.rdp-nav_button_next,
 }
 
 /* Navigation button styling */
+.rdp .rdp-nav_button,
 .rdp-nav_button {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 28px !important;
-  height: 28px !important;
+  width: 32px !important;
+  height: 32px !important;
   border-radius: 6px !important;
-  border: 1px solid transparent !important;
-  background: transparent !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--card)) !important;
   color: hsl(var(--foreground)) !important;
-  opacity: 0.7 !important;
+  opacity: 1 !important;
   transition: all 0.15s ease !important;
   cursor: pointer !important;
   padding: 0 !important;
 }
 
+.rdp .rdp-nav_button:hover,
 .rdp-nav_button:hover {
   opacity: 1 !important;
   background: hsl(var(--accent)) !important;
   border-color: hsl(var(--border)) !important;
 }
 
+.rdp .rdp-nav_button:disabled,
 .rdp-nav_button:disabled {
   opacity: 0.3 !important;
   cursor: not-allowed !important;
 }
 
 /* Ensure SVG icons inside nav buttons are visible */
+.rdp .rdp-nav_button svg,
 .rdp-nav_button svg {
   width: 16px !important;
   height: 16px !important;
