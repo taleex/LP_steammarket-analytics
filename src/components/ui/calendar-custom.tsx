@@ -16,7 +16,7 @@ import {
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 // Custom caption component with proper [←] [Month] [Year] [→] layout
-function CustomCaption({ displayMonth, id }: CaptionProps) {
+function CustomCaption({ displayMonth }: CaptionProps) {
   const { goToMonth, previousMonth, nextMonth } = useNavigation();
   
   const currentYear = displayMonth.getFullYear();
