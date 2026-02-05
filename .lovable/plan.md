@@ -1,148 +1,146 @@
 
+# App Review: Steam Market Transaction Tracker
 
-# Fix Calendar UI Layout
+## Summary
 
-## Problem Analysis
-
-The calendar header layout is broken because of how react-day-picker v8 structures its HTML. The navigation buttons (`<` and `>`) are wrapped together inside a single `.rdp-nav` container, while the month/year dropdowns are in a separate `.rdp-caption_dropdowns` container.
-
-**Current HTML structure:**
-```text
-.rdp-caption
-├── .rdp-nav
-│   ├── nav_button_previous (<)
-│   └── nav_button_next (>)
-└── .rdp-caption_dropdowns
-    ├── dropdown_month
-    └── dropdown_year
-```
-
-The Tailwind `order-first` and `order-last` classes on individual nav buttons don't work because they only affect ordering within the `.rdp-nav` container, not relative to the dropdowns container.
-
-**Expected layout:** `[<] [Month ▼] [Year ▼] [>]`
+The application is **well-organized and properly refactored** following feature-based architecture. It demonstrates excellent code organization, clean separation of concerns, and thoughtful design patterns. However, there are several areas for cleanup and potential performance improvements that should be addressed.
 
 ---
 
-## Solution
+## Strengths
 
-Override the calendar layout using CSS flexbox with proper ordering on the **container level**, not the button level. The fix requires:
+### Architecture
+- Clean **feature-based folder structure** (csv-import, transactions, layout)
+- Proper **barrel exports** (index.ts) throughout for clean imports
+- **Single-responsibility hooks** for business logic
+- Well-defined **TypeScript interfaces** in dedicated types folder
+- Comprehensive **README.md** and **docs/context.md** documentation
 
-1. **Remove conflicting styles** from both `calendar-styles.css` and `index.css` (duplicate/conflicting CSS rules)
-2. **Apply correct CSS structure** using flexbox ordering on the containers
-3. **Split navigation buttons visually** using CSS to position them on opposite ends
+### Code Quality
+- Components are properly **memoized** where beneficial (TransactionRow, TransactionTableHeader)
+- **Debounced inputs** for filter performance
+- Consistent use of **cn()** utility for class merging
+- No TODOs, FIXMEs, or technical debt markers found
 
----
-
-## Technical Implementation
-
-### Step 1: Update `src/components/ui/calendar-styles.css`
-
-Completely rewrite the CSS to properly handle the layout:
-
-```css
-/* Hide the visually hidden elements */
-.rdp-vhidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  border: 0 !important;
-}
-
-/* Caption container: use flexbox with space-between */
-.rdp-caption {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 0 !important;
-  height: 40px !important;
-  position: relative !important;
-}
-
-/* Navigation container: absolute position, split to both ends */
-.rdp-nav {
-  display: contents !important;  /* Remove nav wrapper from layout */
-}
-
-/* Previous button: position on the left */
-.rdp-nav_button_previous {
-  order: 1 !important;
-}
-
-/* Dropdowns container: centered in the middle */
-.rdp-caption_dropdowns {
-  order: 2 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  margin: 0 auto !important;
-}
-
-/* Next button: position on the right */
-.rdp-nav_button_next {
-  order: 3 !important;
-}
-
-/* Dropdown selects styling */
-.rdp-caption_dropdowns select { ... }
-```
-
-The key insight is using `display: contents` on the `.rdp-nav` container. This makes the nav wrapper "disappear" from the layout while keeping its children, allowing us to use flexbox ordering on the buttons directly relative to the dropdowns container.
-
-### Step 2: Update `src/index.css`
-
-Remove all the duplicate rdp styles from `index.css` (lines 122-266) to prevent conflicts. All calendar-specific styles will be in `calendar-styles.css` only.
-
-### Step 3: Update `src/components/ui/calendar.tsx`
-
-Simplify the classNames - remove the `order-first` and `order-last` from Tailwind classes since CSS will handle this:
-
-```tsx
-classNames={{
-  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-  month: "space-y-4",
-  caption: "rdp-caption",  // Let CSS handle layout
-  caption_label: "hidden",
-  caption_dropdowns: "",   // Let CSS handle layout
-  dropdown_month: "",
-  dropdown_year: "",
-  dropdown: "",
-  vhidden: "sr-only",
-  nav: "",                 // Let CSS handle layout
-  nav_button: cn(buttonVariants({ variant: "ghost" }), "h-7 w-7 p-0"),
-  nav_button_previous: "", // CSS handles order
-  nav_button_next: "",     // CSS handles order
-  // ... rest unchanged
-}}
-```
+### Design System
+- Semantic CSS variables for theming
+- Custom Tailwind tokens for profit/loss colors
+- Responsive design with mobile-first approach
 
 ---
 
-## Files to Modify
+## Issues Found
 
-| File | Changes |
-|------|---------|
-| `src/components/ui/calendar-styles.css` | Complete rewrite with proper flexbox layout using `display: contents` |
-| `src/index.css` | Remove duplicate rdp styles (lines 122-266) |
-| `src/components/ui/calendar.tsx` | Simplify classNames, let CSS control layout |
+### 1. Unused Files (Cleanup Required)
+| File | Issue |
+|------|-------|
+| `src/components/ui/calendar-fixed.tsx` | Not imported anywhere - dead code |
+| `src/components/ui/calendar.tsx` | Not used - only `calendar-custom.tsx` is imported |
+| `src/components/ui/calendar-styles.css` | Only imported by unused `calendar.tsx` - potentially orphaned |
+
+### 2. Performance Concerns
+
+**a. Transaction Totals Lookup Inefficiency**
+In `use-transaction-totals.ts` (line 15), transactions are searched with `.find()` for each selected item:
+```typescript
+selectedItems.forEach((id) => {
+  const transaction = transactions.find((t) => t.id === id);  // O(n) lookup
+```
+**Impact**: O(n*m) complexity where n = transactions, m = selected items. For large datasets (1000+ transactions), this becomes slow.
+
+**Fix**: Use a Map for O(1) lookup.
+
+**b. Filter Effect Re-runs**
+In `use-transaction-filters.ts`, the filter `useEffect` (lines 77-119) has `onFilteredTransactions` in its dependency array. This callback is passed from `Index.tsx` and while it's wrapped in `useCallback`, any parent re-render pattern could trigger unnecessary filter recalculations.
+
+**c. Large Table Rendering**
+No virtualization for the transaction table. With thousands of rows, this could cause performance issues.
+
+### 3. Minor Code Issues
+
+**a. Unused imports in calendar-custom.tsx**
+The `id` parameter in CustomCaption (line 19) is never used:
+```typescript
+function CustomCaption({ displayMonth, id }: CaptionProps) {
+```
+
+**b. Inconsistent type assertion**
+In `transaction.ts` (line 17):
+```typescript
+type: TransactionType | string;  // Should just be TransactionType
+```
+
+**c. Footer exports inconsistency**
+`Footer.tsx` has both named and default export, while other components only use named exports.
+
+### 4. Missing Features (Not Bugs)
+- No error boundaries for production robustness
+- No pagination for large datasets
+- No table sorting
+- No unit tests visible in the codebase
 
 ---
 
-## Expected Result
+## Recommended Fixes
 
-```text
-┌─────────────────────────────────┐
-│ [<]  [Month ▼]  [Year ▼]  [>]  │
-├─────────────────────────────────┤
-│  Su  Mo  Tu  We  Th  Fr  Sa    │
-│  ...calendar days...            │
-└─────────────────────────────────┘
+### Priority 1: Cleanup Dead Code
+Delete unused calendar files:
+- `src/components/ui/calendar-fixed.tsx`
+- `src/components/ui/calendar.tsx` (if confirmed unused elsewhere)
+- Consider if `calendar-styles.css` is still needed (only by calendar-custom via the native CSS Grid layout)
+
+### Priority 2: Performance Optimization
+**Transaction totals lookup** - Use a Map:
+```typescript
+const transactionMap = useMemo(
+  () => new Map(transactions.map(t => [t.id, t])),
+  [transactions]
+);
+
+selectedItems.forEach((id) => {
+  const transaction = transactionMap.get(id);  // O(1) lookup
 ```
 
-- Previous button on far left
-- Month and Year dropdowns centered
-- Next button on far right
-- Functionality remains unchanged (dropdowns update the calendar grid)
+### Priority 3: Type Cleanup
+Fix the Transaction type to use strict TransactionType:
+```typescript
+type: TransactionType;  // Remove | string
+```
 
+### Priority 4: Export Consistency
+Standardize Footer.tsx to use only named export (remove default export).
+
+---
+
+## Technical Details
+
+### Files to Delete
+- `src/components/ui/calendar-fixed.tsx` (73 lines, never imported)
+- `src/components/ui/calendar.tsx` (70 lines, not used in app)
+
+### Files to Modify
+| File | Change |
+|------|--------|
+| `use-transaction-totals.ts` | Add Map-based lookup for O(1) performance |
+| `src/types/transaction.ts` | Fix type union to strict `TransactionType` |
+| `src/components/layout/Footer.tsx` | Remove default export |
+| `src/components/ui/calendar-custom.tsx` | Remove unused `id` parameter (or prefix with _) |
+
+### Verification Steps
+After changes:
+1. Test CSV import with sample data
+2. Test all filter combinations (game, type, date, price)
+3. Test selection with shift-click
+4. Verify calendar navigation (prev/next month, dropdown selection)
+5. Verify totals update correctly on selection change
+
+---
+
+## Conclusion
+
+The app is in good shape overall. The main issues are:
+1. **Dead code** from calendar iteration that should be cleaned up
+2. **Minor performance optimization** opportunity in totals calculation
+3. **Small type inconsistencies** that should be fixed for maintainability
+
+No critical bugs or broken functionality were found. The calendar UI fix from the previous session appears to be working correctly with the custom caption component approach.
