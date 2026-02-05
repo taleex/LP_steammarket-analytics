@@ -12,7 +12,7 @@ export interface Transaction {
   game: string;
   date: string;
   price_cents: number;
-  type: TransactionType | string;
+  type: TransactionType;
   created_at: string;
   updated_at: string;
 }
